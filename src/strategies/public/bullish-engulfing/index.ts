@@ -27,6 +27,7 @@ const bullishEngulfing = async ({
   symbol: string;
 }) => {
   const config = configs[configName];
+
   if (!bars?.length) {
     return;
   }
@@ -42,7 +43,6 @@ const bullishEngulfing = async ({
   }
 
   const mostRecentBar = bars[bars.length - 1];
-
   const percentRise = getPercentChange(mostRecentBar.o, mostRecentBar.c);
 
   if (
@@ -82,6 +82,8 @@ const bullishEngulfing = async ({
   let reversalDropPercent;
   const reversalIndex = bars.length - 3;
   const reversalBar = bars[reversalIndex];
+
+  // if we're targeting a reversal
   if (
     config.reversalDropBarCount === 'number' &&
     typeof config.reversalDropPercentMin === 'number'
