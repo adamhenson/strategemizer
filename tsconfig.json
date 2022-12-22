@@ -1,0 +1,15 @@
+{
+  "extends": "ts-node/node16/tsconfig.json",
+  "ts-node": {
+    "compilerOptions": {
+      "resolveJsonModule": true
+    },
+    "files": true,
+    "transpileOnly": true
+  },
+  "compilerOptions": {
+    "outDir": "./dist",
+    "resolveJsonModule": true,
+    "rootDir": "./src"
+  }
+}
