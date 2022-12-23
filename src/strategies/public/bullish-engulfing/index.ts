@@ -1,6 +1,5 @@
 import moment from 'moment-timezone';
 import { bullishengulfingpattern } from 'technicalindicators';
-import { Bar } from '../../../types';
 import {
   formatCurrencyNumber,
   formattedLog,
@@ -8,7 +7,8 @@ import {
   getIndicators,
   getPercentChange,
   getTechnicalIndicatorsInput,
-} from '../../../utils';
+} from '../../../lib/utils';
+import { Bar } from '../../../types';
 import configs from './config';
 
 moment.tz.setDefault('America/New_York');
@@ -19,14 +19,14 @@ const shouldLog = LOG_LEVEL.includes(name);
 
 const bullishEngulfing = async ({
   bars,
-  configName,
+  configKey,
   symbol,
 }: {
   bars: Bar[];
-  configName: string;
+  configKey: string;
   symbol: string;
 }) => {
-  const config = configs[configName];
+  const config = configs[configKey];
 
   if (!bars?.length) {
     return;
@@ -191,12 +191,13 @@ const bullishEngulfing = async ({
   return {
     ...indicators,
     customComparisons,
-    entryTime,
     name,
     points,
     price,
     profitPrice,
     stopPrice,
+    t: mostRecentBar.t,
+    time: entryTime,
     trailPercent,
   };
 };

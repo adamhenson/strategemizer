@@ -7,6 +7,16 @@ export interface Bar {
   v: number;
 }
 
+export interface Trade {
+  c: string[];
+  i: number;
+  p: number;
+  s: number;
+  t: string;
+  x: string;
+  z: string;
+}
+
 export interface BarWithExtras extends Bar {
   rvol: number;
   vwap: number;
@@ -25,3 +35,8 @@ export interface TechnicalIndicatorsInputWithVolume
 }
 
 export type Config = Record<string, any>;
+
+export interface StartAndEnd {
+  start: string;
+  end: string;
+}

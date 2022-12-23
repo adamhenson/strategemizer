@@ -1,4 +1,4 @@
-import sAndP500 from './public/s-and-p-500';
+import sAndP500 from './public/sAndP500';
 
 type Symbols = Record<string, string[]>;
 const symbols: Symbols = {
