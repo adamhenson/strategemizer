@@ -8,7 +8,7 @@ import {
   getPercentChange,
   getTechnicalIndicatorsInput,
 } from '../../../lib/utils';
-import { Bar } from '../../../types';
+import { Bar, Config } from '../../../types';
 import configs from './config';
 
 moment.tz.setDefault('America/New_York');
@@ -19,15 +19,13 @@ const shouldLog = LOG_LEVEL.includes(name);
 
 const bullishEngulfing = async ({
   bars,
-  configKey,
+  config,
   symbol,
 }: {
   bars: Bar[];
-  configKey: string;
+  config: Config;
   symbol: string;
 }) => {
-  const config = configs[configKey];
-
   if (!bars?.length) {
     return;
   }
@@ -205,4 +203,5 @@ const bullishEngulfing = async ({
   };
 };
 
+export { configs };
 export default bullishEngulfing;

@@ -1,7 +1,6 @@
-import { Config } from '../../../../types';
+import { Configs } from '../../../../types';
 import a from './a';
 
-type Configs = Record<string, Config>;
 const configs: Configs = {
   a,
 };

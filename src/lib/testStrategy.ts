@@ -3,9 +3,8 @@ import fs from 'fs';
 import moment from 'moment-timezone';
 import path from 'path';
 import { v4 as uuid } from 'uuid';
-import strategies from '../strategies';
 import symbols from '../symbols';
-import { Bar, StartAndEnd } from '../types';
+import { Bar, Config, StartAndEnd, Strategy } from '../types';
 import AlpacaClient from './AlpacaClient';
 import getTradingDay from './getTradingDay';
 import simulateTrade from './simulateTrade';
@@ -15,6 +14,7 @@ import {
   formatCurrencyNumber,
   numberStringWithCommas,
   sortByKey,
+  delay,
 } from './utils';
 
 moment.tz.setDefault('America/New_York');
@@ -43,8 +43,10 @@ let maxLossPercent: number | undefined;
 let overallEnd: string;
 let overallNetProfit = 0;
 let overallStart: string;
-let strategy: (options: any) => any;
+let strategy: Strategy;
+let strategyConfig: Config;
 let strategyConfigKey: string;
+let strategyConfigVariation: string | undefined;
 let strategyKey: string;
 let strategyVersion: string;
 let timeframe: string;
@@ -432,7 +434,7 @@ const runStrategy = async ({ symbol, start, end }: RunStrategyInput) => {
       if (sliced5MinBars.length) {
         const result = await strategy({
           bars: sliced5MinBars,
-          configKey: strategyConfigKey,
+          config: strategyConfig,
           symbol,
         });
 
@@ -452,7 +454,7 @@ const runStrategy = async ({ symbol, start, end }: RunStrategyInput) => {
       if (sliced1MinBars.length) {
         const result = await strategy({
           bars: sliced1MinBars,
-          configKey: strategyConfigKey,
+          config: strategyConfig,
           symbol,
         });
 
@@ -469,12 +471,15 @@ const runStrategy = async ({ symbol, start, end }: RunStrategyInput) => {
   }
 };
 
-const handleEnd = async () => {
+const handleEnd = async (): Promise<number> => {
   await handleResults();
 
   const reportDay = moment().format('YYYY-MM-DD');
   const reportTime = moment().format('h-mm-ss-a');
-  const outputDirectory = `./output/${strategyKey}_v${strategyVersion}_config_${strategyConfigKey}/${reportDay}/${reportTime}`;
+  const variation = !strategyConfigVariation
+    ? ''
+    : `_variation_${strategyConfigVariation}`;
+  const outputDirectory = `./output/${strategyKey}_v${strategyVersion}_config_${strategyConfigKey}${variation}/${reportDay}/${reportTime}`;
   if (!fs.existsSync(outputDirectory)) {
     fs.mkdirSync(outputDirectory, { recursive: true });
   }
@@ -631,6 +636,8 @@ const handleEnd = async () => {
 
   console.log('-----------------------------------');
   console.log('');
+
+  return overallFormattedProfit;
 };
 
 const tradeDayStartAndEndHashMap: Record<string, StartAndEnd> = {};
@@ -731,7 +738,10 @@ const testStrategy = async ({
   maxLoops: maxLoopsParam = Infinity,
   maxLossPercent: maxLossPercentParam,
   start,
+  strategy: strategyParam,
+  strategyConfig: strategyConfigParam,
   strategyConfigKey: strategyConfigKeyParam,
+  strategyConfigVariation: strategyConfigVariationParam,
   strategyKey: strategyKeyParam,
   strategyVersion: strategyVersionParam = '1',
   symbolsKey,
@@ -750,12 +760,15 @@ const testStrategy = async ({
   maxLoops?: number;
   maxLossPercent?: number;
   start: string;
+  strategy: Strategy;
+  strategyConfig: Config;
   strategyConfigKey: string;
+  strategyConfigVariation?: string;
   strategyKey: string;
   strategyVersion?: string;
   symbolsKey: string;
   timeframe?: string;
-}) => {
+}): Promise<number> => {
   accountBudget = accountBudgetParam;
   accountBudgetMultiplier = accountBudgetMultiplierParam;
   accountBudgetPercentPerTrade = accountBudgetPercentPerTradeParam;
@@ -764,12 +777,13 @@ const testStrategy = async ({
   maxLossPercent = maxLossPercentParam;
   overallEnd = end;
   overallStart = start;
+  strategy = strategyParam;
+  strategyConfig = strategyConfigParam;
   strategyConfigKey = strategyConfigKeyParam;
+  strategyConfigVariation = strategyConfigVariationParam;
   strategyKey = strategyKeyParam;
   strategyVersion = strategyVersionParam;
   timeframe = timeframeParam;
-
-  strategy = strategies[strategyKey];
 
   // reset
   overallNetProfit = 0;
@@ -791,6 +805,9 @@ const testStrategy = async ({
     symbolsKey,
     timeframe,
   });
+
+  // a 5 second delay to read the above in the output
+  await delay(5000);
 
   alpacaClient = new AlpacaClient(
     alpacaBaseUrl,
@@ -822,7 +839,8 @@ const testStrategy = async ({
     index++;
   }
 
-  await handleEnd();
+  const finalOverallProfit = await handleEnd();
+  return finalOverallProfit;
 };
 
 export default testStrategy;

@@ -7,6 +7,7 @@ import {
   ALPACA_SECRET_KEY,
 } from '../config';
 import testStrategy from '../lib/testStrategy';
+import strategies from '../strategies';
 
 const cli = meow({
   importMeta: import.meta,
@@ -79,7 +80,10 @@ const {
 } = cli.flags;
 
 const strategemizer = async () => {
-  await testStrategy({
+  const { strategy, configs } = strategies[strategyKey];
+  const strategyConfig = configs[strategyConfigKey];
+
+  const profit = await testStrategy({
     accountBudget: accountBudget || 120000,
     accountBudgetMultiplier: accountBudgetMultiplier || 4,
     accountBudgetPercentPerTrade: accountBudgetPercentPerTrade || 100,
@@ -93,12 +97,15 @@ const strategemizer = async () => {
     maxLoops,
     maxLossPercent,
     start,
+    strategy,
+    strategyConfig,
     strategyConfigKey,
     strategyKey,
     strategyVersion,
     symbolsKey,
     timeframe,
   });
+  console.log('profit', profit);
 };
 
 strategemizer();

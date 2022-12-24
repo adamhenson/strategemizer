@@ -1,8 +1,13 @@
-import { default as bullishEngulfing } from './public/bullishEngulfing';
+import { StrategyCollection } from '../types';
+import bullishEngulfing, {
+  configs as bullishEngulfingConfigs,
+} from './public/bullishEngulfing';
 
-type Strategies = Record<string, (options: any) => Promise<any>>;
-const strategies: Strategies = {
-  bullishEngulfing,
+const strategies: StrategyCollection = {
+  bullishEngulfing: {
+    strategy: bullishEngulfing,
+    configs: bullishEngulfingConfigs,
+  },
 };
 
 export default strategies;

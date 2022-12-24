@@ -35,6 +35,14 @@ export interface TechnicalIndicatorsInputWithVolume
 }
 
 export type Config = Record<string, any>;
+export type Configs = Record<string, Config>;
+
+export type Strategy = (options: any) => Promise<any>;
+export interface StrategyWithConfigs {
+  strategy: (options: any) => Promise<any>;
+  configs: Configs;
+}
+export type StrategyCollection = Record<string, StrategyWithConfigs>;
 
 export interface StartAndEnd {
   start: string;
