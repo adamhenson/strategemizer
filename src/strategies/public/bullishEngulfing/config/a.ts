@@ -5,10 +5,9 @@ const config: Config = {
   // maxRsi,
   // minPercentRise,
   // minRvol,
-  // prefetchedBars,
   profitPercent: 0.2,
-  // reversalDropBarCount = 0,
-  // reversalDropPercentMin = 0,
+  reversalDropBarCount: 0,
+  reversalDropPercentMin: 0,
   // shouldUseTrailPercent,
 };
 
