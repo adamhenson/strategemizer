@@ -3,6 +3,7 @@ import fs from 'fs';
 import moment from 'moment-timezone';
 import path from 'path';
 import { v4 as uuid } from 'uuid';
+import strategies from '../strategies';
 import symbols from '../symbols';
 import { Bar, StartAndEnd } from '../types';
 import AlpacaClient from './AlpacaClient';
@@ -33,13 +34,13 @@ let accountBudgetPercentPerTrade: number;
 let alpacaClient: AlpacaClient;
 let isFractional: boolean | undefined;
 let maxLoops: number;
-let maxLossPercent: number;
+let maxLossPercent: number | undefined;
 let overallEnd: string;
 let overallNetProfit = 0;
 let overallStart: string;
 let strategy: (options: any) => any;
-let strategyName: string;
-let strategyParams: any;
+let strategyConfigKey: string;
+let strategyKey: string;
 let strategyVersion: string;
 let timeframe: string;
 let totalLossTrades = 0;
@@ -60,7 +61,7 @@ const handleResolvedResult = async ({
     isFractional,
     isShort: result.isShort,
     maxLossPercent,
-    // sellOnDownwardMovement: strategyName !== 'straightAndNarrow',
+    // sellOnDownwardMovement: strategyKey !== 'straightAndNarrow',
     sellOnDownwardMovement: false,
     strategyResult: result,
     symbol: result.symbol,
@@ -433,14 +434,9 @@ const runStrategy = async ({ symbol, start, end }: RunStrategyInput) => {
     for (const [index] of bars5Min.entries()) {
       const sliced5MinBars = bars5Min.slice(0, index + 1);
       if (sliced5MinBars.length) {
-        const mostRecentBar = sliced5MinBars[sliced5MinBars.length - 1];
         const result = await strategy({
-          ...strategyParams,
-          alpacaClient,
-          bars1MinPreviousDay: { bars: bars1MinPreviousDay },
-          end: mostRecentBar.t,
-          prefetchedBars: { bars: sliced5MinBars },
-          start,
+          bars: sliced5MinBars,
+          configKey: strategyConfigKey,
           symbol,
         });
 
@@ -458,14 +454,9 @@ const runStrategy = async ({ symbol, start, end }: RunStrategyInput) => {
     for (const [index] of bars1Min.entries()) {
       const sliced1MinBars = bars1Min.slice(0, index + 1);
       if (sliced1MinBars.length) {
-        const mostRecentBar = sliced1MinBars[sliced1MinBars.length - 1];
         const result = await strategy({
-          ...strategyParams,
-          alpacaClient,
-          bars1MinPreviousDay: { bars: bars1MinPreviousDay },
-          end: mostRecentBar.t,
-          prefetchedBars: { bars: sliced1MinBars },
-          start,
+          bars: sliced1MinBars,
+          configKey: strategyConfigKey,
           symbol,
         });
 
@@ -487,7 +478,7 @@ const handleEnd = async () => {
 
   const reportDay = moment().format('YYYY-MM-DD');
   const reportTime = moment().format('h-mm-ss-a');
-  const outputDirectory = `./output/${strategyName}/${reportDay}/${strategyVersion}-${reportTime}`;
+  const outputDirectory = `./output/${strategyKey}/${reportDay}/${strategyVersion}-${reportTime}`;
   if (!fs.existsSync(outputDirectory)) {
     fs.mkdirSync(outputDirectory, { recursive: true });
   }
@@ -641,22 +632,6 @@ const handleEnd = async () => {
     }
   }
 
-  const csvParametersHeader =
-    ['start', 'end', ...Object.keys(strategyParams)].join(',') + '\n';
-  const csvParametersContent =
-    [
-      overallStart,
-      overallEnd,
-      ...Object.values(strategyParams).map((current) =>
-        !Array.isArray(current) ? current : current.join('|'),
-      ),
-    ].join(',') + '\n';
-  const outputParametersCsv = path.resolve(`${outputDirectory}/parameters.csv`);
-  fs.writeFileSync(
-    outputParametersCsv,
-    `${csvParametersHeader}${csvParametersContent}`,
-  );
-
   console.log(
     `✔️ ${strategyConfirmedResults.length} strategy confirmed points`,
   );
@@ -759,9 +734,8 @@ const testStrategy = async ({
   maxLoops: maxLoopsParam = Infinity,
   maxLossPercent: maxLossPercentParam,
   start,
-  strategy: strategyParam,
-  strategyName: strategyNameParam,
-  strategyParams: strategyParamsParam = {},
+  strategyConfigKey: strategyConfigKeyParam,
+  strategyKey: strategyKeyParam,
   strategyVersion: strategyVersionParam = '1',
   symbolsKey,
   timeframe: timeframeParam = '1Min',
@@ -776,11 +750,10 @@ const testStrategy = async ({
   end: string;
   isFractional?: boolean;
   maxLoops?: number;
-  maxLossPercent: number;
+  maxLossPercent?: number;
   start: string;
-  strategy: (options: any) => any;
-  strategyName: string;
-  strategyParams: any;
+  strategyConfigKey: string;
+  strategyKey: string;
   strategyVersion?: string;
   symbolsKey: string;
   timeframe?: string;
@@ -793,11 +766,12 @@ const testStrategy = async ({
   maxLossPercent = maxLossPercentParam;
   overallEnd = end;
   overallStart = start;
-  strategy = strategyParam;
-  strategyName = strategyNameParam;
-  strategyParams = strategyParamsParam;
+  strategyConfigKey = strategyConfigKeyParam;
+  strategyKey = strategyKeyParam;
   strategyVersion = strategyVersionParam;
   timeframe = timeframeParam;
+
+  strategy = strategies[strategyKey];
 
   console.log('testStrategy payload', {
     accountBudget,
@@ -808,9 +782,8 @@ const testStrategy = async ({
     maxLossPercent,
     maxLoops,
     start,
-    strategy,
-    strategyName,
-    strategyParams,
+    strategyConfigKey,
+    strategyKey,
     strategyVersion,
     symbolsKey,
     timeframe,

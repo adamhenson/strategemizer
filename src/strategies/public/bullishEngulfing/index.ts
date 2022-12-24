@@ -85,7 +85,7 @@ const bullishEngulfing = async ({
 
   // if we're targeting a reversal
   if (
-    config.reversalDropBarCount === 'number' &&
+    typeof config.reversalDropBarCount === 'number' &&
     typeof config.reversalDropPercentMin === 'number'
   ) {
     const dropStartBar = bars[bars.length - config.reversalDropBarCount - 2];

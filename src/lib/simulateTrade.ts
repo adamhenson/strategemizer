@@ -112,7 +112,7 @@ const simulateTrade = async ({
   isFractional?: boolean;
   isShort?: boolean;
   hwm?: number;
-  maxLossPercent: number;
+  maxLossPercent?: number;
   mostRecentTrade?: Trade;
   priceProofEntry?: number[];
   priceProofExit?: number[];
