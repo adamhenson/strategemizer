@@ -25,7 +25,6 @@ type CustomComparisonGroup = Record<string, CustomComparison>;
 type CustomComparisonGroups = Record<string, CustomComparisonGroup>;
 
 const customComparisons: CustomComparisonGroups = {};
-const formations: CustomComparisonGroup = {};
 const hours: CustomComparisonGroup = {};
 
 let accountBudget: number;
@@ -105,15 +104,6 @@ const handleResolvedResult = async ({
   if (profit) {
     totalProfitTrades++;
   }
-
-  if (!formations[result.formation]) {
-    formations[result.formation] = {
-      profit: 0,
-      trades: 0,
-    };
-  }
-  formations[result.formation].profit += netProfit;
-  formations[result.formation].trades++;
 
   if (result.customComparisons && result.customComparisons.length) {
     for (const customComparison of result.customComparisons) {
@@ -582,21 +572,6 @@ const handleEnd = async () => {
     [overallProfit, totalProfitTrades, totalLossTrades].join(',') + '\n';
   const outputSummaryCsv = path.resolve(`${outputDirectory}/summary.csv`);
   fs.writeFileSync(outputSummaryCsv, `${csvSummaryHeader}${csvSummaryContent}`);
-
-  const csvFormationsHeader = ['name', 'profit', 'trades'].join(',') + '\n';
-
-  const csvFormationsContent = Object.keys(formations)
-    .map((name) => {
-      const formation = formations[name];
-      const profit = formatCurrencyNumber(formation.profit);
-      return [name, profit, formation.trades].join(',');
-    })
-    .join('\n');
-  const outputFormationsCsv = path.resolve(`${outputDirectory}/formations.csv`);
-  fs.writeFileSync(
-    outputFormationsCsv,
-    `${csvFormationsHeader}${csvFormationsContent}`,
-  );
 
   const csvHoursHeader = ['hour', 'profit', 'trades'].join(',') + '\n';
 
