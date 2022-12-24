@@ -515,3 +515,24 @@ export const getQty = async ({
 
   return qty;
 };
+
+export function randomSort() {
+  return Math.random() - 0.5;
+}
+
+// will only work with an array of primitives
+type Primitive = string | boolean | number;
+export const getRandomlySortedArray = <Type extends Primitive>(
+  array: Type[],
+): Type[] => {
+  const clonedArray = [...array];
+  clonedArray.sort(randomSort);
+  return clonedArray;
+};
+
+// https://stackoverflow.com/a/2901298
+export const numberWithCommas = (x: number): string =>
+  x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+
+export const numberStringWithCommas = (x: string): string =>
+  x.replace(/\B(?=(\d{3})+(?!\d))/g, ',');

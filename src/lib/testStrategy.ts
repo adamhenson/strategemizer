@@ -9,7 +9,13 @@ import { Bar, StartAndEnd } from '../types';
 import AlpacaClient from './AlpacaClient';
 import getTradingDay from './getTradingDay';
 import simulateTrade from './simulateTrade';
-import { getBarsWithRetry, formatCurrencyNumber, sortByKey } from './utils';
+import {
+  getBarsWithRetry,
+  getRandomlySortedArray,
+  formatCurrencyNumber,
+  numberStringWithCommas,
+  sortByKey,
+} from './utils';
 
 moment.tz.setDefault('America/New_York');
 
@@ -567,9 +573,10 @@ const handleEnd = async () => {
   const csvSummaryHeader =
     ['profit', 'total profit trades', 'total loss trades'].join(',') + '\n';
 
-  const overallProfit = formatCurrencyNumber(overallNetProfit);
+  const overallFormattedProfit = formatCurrencyNumber(overallNetProfit);
   const csvSummaryContent =
-    [overallProfit, totalProfitTrades, totalLossTrades].join(',') + '\n';
+    [overallFormattedProfit, totalProfitTrades, totalLossTrades].join(',') +
+    '\n';
   const outputSummaryCsv = path.resolve(`${outputDirectory}/summary.csv`);
   fs.writeFileSync(outputSummaryCsv, `${csvSummaryHeader}${csvSummaryContent}`);
 
@@ -607,9 +614,23 @@ const handleEnd = async () => {
     }
   }
 
-  console.log(
-    `✔️ ${strategyConfirmedResults.length} strategy confirmed points`,
-  );
+  console.log('');
+  console.log(`✔️ ${strategyConfirmedResults.length} strategy detections`);
+
+  const absoluteProfit = Math.abs(overallFormattedProfit);
+  const finalFormattedProfit = numberStringWithCommas(`${absoluteProfit}`);
+
+  console.log('');
+  console.log('-----------------------------------');
+
+  if (overallFormattedProfit < 0) {
+    console.log(`❌ - $${finalFormattedProfit} (total loss)`);
+  } else {
+    console.log(`✅ $${finalFormattedProfit} (total profit)`);
+  }
+
+  console.log('-----------------------------------');
+  console.log('');
 };
 
 const tradeDayStartAndEndHashMap: Record<string, StartAndEnd> = {};
@@ -706,6 +727,7 @@ const testStrategy = async ({
   alpacaSecretKey,
   end,
   isFractional: isFractionalParam,
+  isRandomlySorted,
   maxLoops: maxLoopsParam = Infinity,
   maxLossPercent: maxLossPercentParam,
   start,
@@ -724,6 +746,7 @@ const testStrategy = async ({
   alpacaSecretKey: string;
   end: string;
   isFractional?: boolean;
+  isRandomlySorted?: boolean;
   maxLoops?: number;
   maxLossPercent?: number;
   start: string;
@@ -772,7 +795,9 @@ const testStrategy = async ({
     LOG_LEVEL.includes('verbose') && LOG_LEVEL.includes('alpaca-client'),
   );
 
-  const symbolList = symbols[symbolsKey];
+  const symbolList = !isRandomlySorted
+    ? symbols[symbolsKey]
+    : getRandomlySortedArray(symbols[symbolsKey]);
   let index = 0;
 
   while (index < symbolList.length && index < maxLoops - 1) {

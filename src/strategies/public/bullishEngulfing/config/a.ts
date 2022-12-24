@@ -5,7 +5,7 @@ const config: Config = {
   // maxRsi,
   // minPercentRise,
   // minRvol,
-  profitPercent: 0.1,
+  profitPercent: 0.2,
   reversalDropBarCount: 5,
   reversalDropPercentMin: 0.5,
   // shouldUseTrailPercent,

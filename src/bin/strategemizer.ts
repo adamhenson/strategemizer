@@ -27,6 +27,9 @@ const cli = meow({
     isFractional: {
       type: 'boolean',
     },
+    isRandomlySorted: {
+      type: 'boolean',
+    },
     maxLoops: {
       type: 'number',
     },
@@ -64,6 +67,7 @@ const {
   accountBudgetPercentPerTrade,
   end,
   isFractional,
+  isRandomlySorted,
   maxLoops,
   maxLossPercent,
   start,
@@ -85,6 +89,7 @@ const strategemizer = async () => {
     alpacaSecretKey: ALPACA_SECRET_KEY,
     end,
     isFractional,
+    isRandomlySorted,
     maxLoops,
     maxLossPercent,
     start,
