@@ -84,10 +84,10 @@ const bullishEngulfing = async ({
   const reversalBar = bars[reversalIndex];
 
   // if we're targeting a reversal
-  if (
+  const shouldBeReversal =
     typeof config.reversalDropBarCount === 'number' &&
-    typeof config.reversalDropPercentMin === 'number'
-  ) {
+    typeof config.reversalDropPercentMin === 'number';
+  if (shouldBeReversal) {
     const dropStartBar = bars[bars.length - config.reversalDropBarCount - 2];
     if (!dropStartBar) {
       if (shouldLog) {
@@ -182,11 +182,14 @@ const bullishEngulfing = async ({
     { group: percentRiseName, name: customComparisonPercentRise },
     { group: rsiName, name: customComparisonRsi },
     { group: rvolName, name: customComparisonRvol },
-    {
+  ];
+
+  if (shouldBeReversal) {
+    customComparisons.push({
       group: reversalDropName,
       name: customComparisonReversalDropPercent,
-    },
-  ];
+    });
+  }
 
   return {
     ...indicators,
