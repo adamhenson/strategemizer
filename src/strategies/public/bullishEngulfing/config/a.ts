@@ -1,12 +1,12 @@
 import { Config } from '../../../../types';
 
 const config: Config = {
-  lossPercent: 0.5,
+  lossPercent: 0.2,
   // maxRsi,
   // minPercentRise,
   // minRvol,
-  profitPercent: 0.2,
-  reversalDropBarCount: 10,
+  profitPercent: 0.1,
+  reversalDropBarCount: 5,
   reversalDropPercentMin: 2,
   // shouldUseTrailPercent,
 };

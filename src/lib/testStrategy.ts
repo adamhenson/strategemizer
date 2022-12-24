@@ -468,7 +468,7 @@ const handleEnd = async () => {
 
   const reportDay = moment().format('YYYY-MM-DD');
   const reportTime = moment().format('h-mm-ss-a');
-  const outputDirectory = `./output/${strategyKey}_v${strategyVersion}/${reportDay}/${reportTime}`;
+  const outputDirectory = `./output/${strategyKey}_v${strategyVersion}_config_${strategyConfigKey}/${reportDay}/${reportTime}`;
   if (!fs.existsSync(outputDirectory)) {
     fs.mkdirSync(outputDirectory, { recursive: true });
   }
