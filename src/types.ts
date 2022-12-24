@@ -34,7 +34,12 @@ export interface TechnicalIndicatorsInputWithVolume
   volume: number[];
 }
 
-export type Config = Record<string, any>;
+export interface ConfigRange {
+  increment: number;
+  range: [number, number];
+  type: 'range';
+}
+export type Config = Record<string, ConfigRange | any>;
 export type Configs = Record<string, Config>;
 
 export type Strategy = (options: any) => Promise<any>;
