@@ -9,7 +9,6 @@ import {
 import testStrategy from '../lib/testStrategy';
 
 const cli = meow({
-  // @ts-ignore
   importMeta: import.meta,
   flags: {
     accountBudget: {

@@ -14,8 +14,9 @@
     "lint": "eslint",
     "prettier": "prettier --write '**/*.{ts,tsx}'",
     "prepare": "husky install",
-    "strategemizer": "ts-node src/bin/strategemizer.ts"
+    "strategemizer": "ts-node-esm --experimental-specifier-resolution=node src/bin/strategemizer.ts"
   },
+  "type": "module",
   "lint-staged": {
     "**/*.{ts,tsx}": [
       "eslint",

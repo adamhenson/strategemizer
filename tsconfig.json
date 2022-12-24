@@ -8,8 +8,10 @@
     "transpileOnly": true
   },
   "compilerOptions": {
+    "module": "ESNext",
     "outDir": "./dist",
     "resolveJsonModule": true,
     "rootDir": "./src"
-  }
+  },
+  "esm": true
 }
