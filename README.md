@@ -10,6 +10,7 @@ A TypeScript based trading strategy tester, providing the ability to test user-d
 **What this project is**
 
 - A work-in-progress fun project that works with "real world" data.
+- A pet project turned open-source. Note - best practice was not at top of mind when building this out and originally was not based in TypeScript (so, code that was ported over is loosely typed).
 - A CLI that utilizes [`ts-node`](https://github.com/TypeStrong/ts-node) runtime.
 - Free for anyone to use at their own risk.
 - An experimental project built by humans with a goal to project hypothetical outcomes of trading strategies.
@@ -18,10 +19,6 @@ A TypeScript based trading strategy tester, providing the ability to test user-d
 
 - This project does not promise future outcomes.
 - This project should not be used professionally to steer trading strategies.
-
-# CLI
-
-Details about how to use the CLI and options coming soon...
 
 #### Usage
 

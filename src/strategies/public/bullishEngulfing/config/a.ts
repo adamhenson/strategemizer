@@ -7,7 +7,7 @@ const config: Config = {
   // minRvol,
   profitPercent: 0.1,
   reversalDropBarCount: 5,
-  reversalDropPercentMin: 2,
+  reversalDropPercentMin: 0.5,
   // shouldUseTrailPercent,
 };
 
