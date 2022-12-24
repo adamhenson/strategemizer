@@ -771,6 +771,11 @@ const testStrategy = async ({
 
   strategy = strategies[strategyKey];
 
+  // reset
+  overallNetProfit = 0;
+  totalLossTrades = 0;
+  totalProfitTrades = 0;
+
   console.log('testStrategy payload', {
     accountBudget,
     accountBudgetMultiplier,
