@@ -1,10 +1,10 @@
 // this file is loosely typed as it was copied from another project
-import fs from 'fs';
 import moment from 'moment-timezone';
-import path from 'path';
 import { v4 as uuid } from 'uuid';
 import { Bar, Config, StartAndEnd, Strategy } from '../types';
 import AlpacaClient from './AlpacaClient';
+import createCsv from './createCsv';
+import createJsonFile from './createJsonFile';
 import getTradingDay from './getTradingDay';
 import simulateTrade from './simulateTrade';
 import {
@@ -28,8 +28,8 @@ interface CustomComparison {
 type CustomComparisonGroup = Record<string, CustomComparison>;
 type CustomComparisonGroups = Record<string, CustomComparisonGroup>;
 
-const customComparisons: CustomComparisonGroups = {};
-const hours: CustomComparisonGroup = {};
+let customComparisons: CustomComparisonGroups = {};
+let hours: CustomComparisonGroup = {};
 
 let accountBudget: number;
 let accountBudgetMultiplier: number;
@@ -38,16 +38,13 @@ let alpacaClient: AlpacaClient;
 let isFractional: boolean | undefined;
 let maxLoops: number;
 let maxLossPercent: number | undefined;
+let outputDirectory: string;
 let overallEnd: string;
 let overallNetProfit = 0;
 let overallStart: string;
 let strategy: Strategy;
 let strategyConfig: Config;
-let strategyConfigKey: string;
-let strategyConfigVariation: string | undefined;
-let strategyKey: string;
 let strategyResults: any[] = [];
-let strategyVersion: string;
 let timeframe: string;
 let totalLossTrades = 0;
 let totalProfitTrades = 0;
@@ -67,7 +64,6 @@ const handleResolvedResult = async ({
     isFractional,
     isShort: result.isShort,
     maxLossPercent,
-    // sellOnDownwardMovement: strategyKey !== 'straightAndNarrow',
     sellOnDownwardMovement: false,
     strategyResult: result,
     symbol: result.symbol,
@@ -471,26 +467,18 @@ const runStrategy = async ({ symbol, start, end }: RunStrategyInput) => {
 const handleEnd = async (): Promise<number> => {
   await handleResults();
 
-  const reportDay = moment().format('YYYY-MM-DD');
-  const reportTime = moment().format('h-mm-ss-a');
-  const variation = !strategyConfigVariation
-    ? ''
-    : `_variation_${strategyConfigVariation}`;
-  const outputDirectory = `./output/${strategyKey}_v${strategyVersion}_config_${strategyConfigKey}${variation}/${reportDay}/${reportTime}`;
-  if (!fs.existsSync(outputDirectory)) {
-    fs.mkdirSync(outputDirectory, { recursive: true });
-  }
-
-  fs.writeFileSync(
-    `${outputDirectory}/config.json`,
-    JSON.stringify(strategyConfig, null, 2),
-  );
+  createJsonFile({
+    content: strategyConfig,
+    directory: outputDirectory,
+    filename: 'config.json',
+  });
 
   if (LOG_LEVEL.includes('trade-budgets')) {
-    fs.writeFileSync(
-      `${outputDirectory}/trade-budgets.json`,
-      JSON.stringify(tradeBudgets, null, 2),
-    );
+    createJsonFile({
+      content: tradeBudgets,
+      directory: outputDirectory,
+      filename: 'trade-budgets.json',
+    });
   }
 
   // create csv files
@@ -517,107 +505,116 @@ const handleEnd = async (): Promise<number> => {
     'entry time',
     'exit time',
   ];
-  const csvHeader = [...csvHeaderList, 'link'].join(',') + '\n';
-  const csvContent = strategyConfirmedResults
-    .map((data) => {
-      const points = data.points.reduce(
-        (accumulator: string, current: string) =>
-          `${accumulator}&points[]=${current}`,
-        '',
-      );
-      const flatLines = (data.flatLines || []).reduce(
-        (accumulator: string, current: string) =>
-          `${accumulator}&flatLines[]=${current}`,
-        '',
-      );
-      const minChartStart = moment(data.t)
-        .set({
-          hour: 9,
-          minute: 30,
-          milliseconds: 0,
-          seconds: 0,
-        })
-        .toISOString();
-      const minChartEnd = moment(data.t)
-        .set({
-          hour: 16,
-          minute: 0,
-          milliseconds: 0,
-          seconds: 0,
-        })
-        .toISOString();
+  const csvHeader = [...csvHeaderList, 'link'];
+  const csvContent = strategyConfirmedResults.map((data) => {
+    const points = data.points.reduce(
+      (accumulator: string, current: string) =>
+        `${accumulator}&points[]=${current}`,
+      '',
+    );
+    const flatLines = (data.flatLines || []).reduce(
+      (accumulator: string, current: string) =>
+        `${accumulator}&flatLines[]=${current}`,
+      '',
+    );
+    const minChartStart = moment(data.t)
+      .set({
+        hour: 9,
+        minute: 30,
+        milliseconds: 0,
+        seconds: 0,
+      })
+      .toISOString();
+    const minChartEnd = moment(data.t)
+      .set({
+        hour: 16,
+        minute: 0,
+        milliseconds: 0,
+        seconds: 0,
+      })
+      .toISOString();
 
-      return [
-        data.date,
-        data.symbol,
-        data.price,
-        data.exitPrice,
-        data.profit || -data.loss,
-        data.profitPercent || -data.lossPercent,
-        data.profitPrice,
-        data.targetedProfitPercent,
-        data.stopPrice,
-        data.targetedLossPercent,
-        data.qty,
-        data.spent,
-        data.rvol,
-        data.rsi,
-        data.vwap,
-        data.ema9,
-        data.ema20,
-        data.orderTime,
-        data.detectionTime,
-        data.entryTime,
-        data.exitTime,
-        `https://www.laservision.app/stocks/${data.symbol}?start=${minChartStart}` +
-          `&end=${minChartEnd}${points}${flatLines}&timeframe=1Min`,
-      ].join(',');
-    })
-    .join('\n');
-  const outputCsv = path.resolve(`${outputDirectory}/report.csv`);
-  fs.writeFileSync(outputCsv, `${csvHeader}${csvContent}`);
+    return [
+      data.date,
+      data.symbol,
+      data.price,
+      data.exitPrice,
+      data.profit || -data.loss,
+      data.profitPercent || -data.lossPercent,
+      data.profitPrice,
+      data.targetedProfitPercent,
+      data.stopPrice,
+      data.targetedLossPercent,
+      data.qty,
+      data.spent,
+      data.rvol,
+      data.rsi,
+      data.vwap,
+      data.ema9,
+      data.ema20,
+      data.orderTime,
+      data.detectionTime,
+      data.entryTime,
+      data.exitTime,
+      `https://www.laservision.app/stocks/${data.symbol}?start=${minChartStart}` +
+        `&end=${minChartEnd}${points}${flatLines}&timeframe=1Min`,
+    ];
+  });
 
-  const csvSummaryHeader =
-    ['profit', 'total profit trades', 'total loss trades'].join(',') + '\n';
+  createCsv({
+    content: csvContent,
+    directory: outputDirectory,
+    filename: 'report.csv',
+    header: csvHeader,
+  });
 
+  const csvSummaryHeader = [
+    'profit',
+    'total profit trades',
+    'total loss trades',
+  ];
   const overallFormattedProfit = formatCurrencyNumber(overallNetProfit);
-  const csvSummaryContent =
-    [overallFormattedProfit, totalProfitTrades, totalLossTrades].join(',') +
-    '\n';
-  const outputSummaryCsv = path.resolve(`${outputDirectory}/summary.csv`);
-  fs.writeFileSync(outputSummaryCsv, `${csvSummaryHeader}${csvSummaryContent}`);
+  const csvSummaryContent = [
+    [overallFormattedProfit, totalProfitTrades, totalLossTrades],
+  ];
 
-  const csvHoursHeader = ['hour', 'profit', 'trades'].join(',') + '\n';
+  createCsv({
+    content: csvSummaryContent,
+    directory: outputDirectory,
+    filename: 'summary.csv',
+    header: csvSummaryHeader,
+  });
 
-  const csvHoursContent = Object.keys(hours)
-    .map((hour) => {
-      const data = hours[hour];
-      const profit = formatCurrencyNumber(data.profit);
-      return [hour, profit, data.trades].join(',');
-    })
-    .join('\n');
-  const outputHoursCsv = path.resolve(`${outputDirectory}/hours.csv`);
-  fs.writeFileSync(outputHoursCsv, `${csvHoursHeader}${csvHoursContent}`);
+  const csvHoursHeader = ['hour', 'profit', 'trades'];
+  const csvHoursContent = Object.keys(hours).map((hour) => {
+    const data = hours[hour];
+    const profit = formatCurrencyNumber(data.profit);
+    return [hour, profit, data.trades];
+  });
+
+  createCsv({
+    content: csvHoursContent,
+    directory: outputDirectory,
+    filename: 'hours.csv',
+    header: csvHoursHeader,
+  });
 
   if (Object.keys(customComparisons).length) {
     for (const group in customComparisons) {
-      const csvCustomComparisonsHeader =
-        ['name', 'profit', 'trades'].join(',') + '\n';
-
-      const csvCustomComparisonsContent = Object.keys(customComparisons[group])
-        .map((name) => {
-          const customComparison = customComparisons[group][name];
-          const profit = formatCurrencyNumber(customComparison.profit);
-          return [name, profit, customComparison.trades].join(',');
-        })
-        .join('\n');
-      const outputCustomComparisonsCsv = path.resolve(
-        `${outputDirectory}/custom-comparison-${group}.csv`,
-      );
-      fs.writeFileSync(
-        outputCustomComparisonsCsv,
-        `${csvCustomComparisonsHeader}${csvCustomComparisonsContent}`,
-      );
+      const csvCustomComparisonsHeader = ['name', 'profit', 'trades'];
+      const csvCustomComparisonsContent = Object.keys(
+        customComparisons[group],
+      ).map((name) => {
+        const customComparison = customComparisons[group][name];
+        const profit = formatCurrencyNumber(customComparison.profit);
+        return [name, profit, customComparison.trades];
+      });
+      createCsv({
+        content: csvCustomComparisonsContent,
+        directory: outputDirectory,
+        filename: `custom-comparison-${group}.csv`,
+        header: csvCustomComparisonsHeader,
+      });
     }
   }
 
@@ -724,13 +721,10 @@ const testStrategy = async ({
   isRandomlySorted,
   maxLoops: maxLoopsParam = Infinity,
   maxLossPercent: maxLossPercentParam,
+  outputDirectory: outputDirectoryParam,
   start,
   strategy: strategyParam,
   strategyConfig: strategyConfigParam,
-  strategyConfigKey: strategyConfigKeyParam,
-  strategyConfigVariation: strategyConfigVariationParam,
-  strategyKey: strategyKeyParam,
-  strategyVersion: strategyVersionParam = '1',
   symbols,
   timeframe: timeframeParam = '1Min',
 }: {
@@ -746,13 +740,10 @@ const testStrategy = async ({
   isRandomlySorted?: boolean;
   maxLoops?: number;
   maxLossPercent?: number;
+  outputDirectory: string;
   start: string;
   strategy: Strategy;
   strategyConfig: Config;
-  strategyConfigKey: string;
-  strategyConfigVariation?: string;
-  strategyKey: string;
-  strategyVersion?: string;
   symbols: string[];
   timeframe?: string;
 }): Promise<number> => {
@@ -762,17 +753,16 @@ const testStrategy = async ({
   isFractional = isFractionalParam;
   maxLoops = maxLoopsParam;
   maxLossPercent = maxLossPercentParam;
+  outputDirectory = outputDirectoryParam;
   overallEnd = end;
   overallStart = start;
   strategy = strategyParam;
   strategyConfig = strategyConfigParam;
-  strategyConfigKey = strategyConfigKeyParam;
-  strategyConfigVariation = strategyConfigVariationParam;
-  strategyKey = strategyKeyParam;
-  strategyVersion = strategyVersionParam;
   timeframe = timeframeParam;
 
   // reset
+  customComparisons = {};
+  hours = {};
   overallNetProfit = 0;
   strategyResults = [];
   totalLossTrades = 0;
@@ -788,10 +778,8 @@ const testStrategy = async ({
     isRandomlySorted,
     maxLossPercent,
     maxLoops,
+    outputDirectory,
     start,
-    strategyConfigKey,
-    strategyKey,
-    strategyVersion,
     timeframe,
   });
 

@@ -6,14 +6,15 @@ type NumberOrBoolean = number | boolean;
 // when a config has a range signified by a tuple, generate all
 // possible variations
 const getConfigVariations = (config: Config): Config[] => {
-  const [rangeKeys, standardKeys] = Object.keys(config).reduce(
+  const [variationKeys, standardKeys] = Object.keys(config).reduce(
     (accumulator: [string[], string[]], current) => {
       const value = config[current];
       const isRange =
         typeof value === 'object' &&
-        value.type === 'range' &&
-        typeof value.increment === 'number' &&
-        value.range?.length === 2;
+        ((value.type === 'range' &&
+          value.range?.length === 2 &&
+          typeof value.increment === 'number') ||
+          (value.type === 'or' && value.or?.length >= 2));
       if (!isRange) {
         return [accumulator[0], [...accumulator[1], current]];
       }
@@ -22,34 +23,33 @@ const getConfigVariations = (config: Config): Config[] => {
     [[], []],
   );
 
-  if (rangeKeys.length === 0) {
+  if (variationKeys.length === 0) {
     return [config];
   }
 
-  const ranges: Record<string, NumberOrBoolean[]> = {};
+  const variations: Record<string, NumberOrBoolean[]> = {};
 
-  for (const rangeKey of rangeKeys) {
-    const { increment, range } = config[rangeKey];
-    const [range1, range2] = range;
+  for (const variationKey of variationKeys) {
+    const { increment, or, range, type } = config[variationKey];
 
-    // we can have a boolean range... meaning we want
-    // to try both boolean values
-    if (typeof range1 === 'boolean') {
-      ranges[rangeKey] = [range1, range2];
+    if (type === 'or' && or) {
+      variations[variationKey] = or;
       continue;
-    }
-
-    ranges[rangeKey] = [range1];
-    let lastOfRange = range1;
-    while (lastOfRange < range2) {
-      const last = ranges[rangeKey][ranges[rangeKey].length - 1];
-      const next = last + increment;
-      if (next > range2) {
-        ranges[rangeKey].push(range2);
-        lastOfRange = range2;
-      } else {
-        ranges[rangeKey].push(next);
-        lastOfRange = next;
+    } else if (type === 'range' && range) {
+      const [range1, range2] = range;
+      variations[variationKey] = [range1];
+      let lastOfRange = range1;
+      while (lastOfRange < range2) {
+        const last =
+          variations[variationKey][variations[variationKey].length - 1];
+        const next = last + increment;
+        if (next > range2) {
+          variations[variationKey].push(range2);
+          lastOfRange = range2;
+        } else {
+          variations[variationKey].push(next);
+          lastOfRange = next;
+        }
       }
     }
   }
@@ -62,8 +62,8 @@ const getConfigVariations = (config: Config): Config[] => {
     {},
   );
 
-  const combinations = getCombinations(Object.values(ranges));
-  const finalRangeKeys = Object.keys(ranges);
+  const combinations = getCombinations(Object.values(variations));
+  const finalRangeKeys = Object.keys(variations);
 
   return combinations.reduce((accumulator: Config[], current, index) => {
     return [

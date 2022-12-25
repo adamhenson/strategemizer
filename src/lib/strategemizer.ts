@@ -1,14 +1,17 @@
 import moment from 'moment-timezone';
+import path from 'path';
 import {
   ALPACA_BASE_URL,
   ALPACA_BASE_URL_DATA,
   ALPACA_API_KEY_ID,
   ALPACA_SECRET_KEY,
+  MAIN_OUTPUT_DIRECTORY,
 } from '../config';
 import { Config, Strategy } from '../types';
+import createJsonFile from './createJsonFile';
 import getConfigVariations from './getConfigVariations';
 import testStrategy from './testStrategy';
-import { delay, numberStringWithCommas } from './utils';
+import { delay, numberStringWithCommas, sortByKey } from './utils';
 
 moment.tz.setDefault('America/New_York');
 
@@ -24,6 +27,7 @@ const strategemizer = async ({
   end,
   isFractional,
   isRandomlySorted,
+  mainOutputDirectory = MAIN_OUTPUT_DIRECTORY,
   maxLoops,
   maxLossPercent,
   start,
@@ -31,7 +35,7 @@ const strategemizer = async ({
   strategyConfig,
   strategyConfigKey,
   strategyKey,
-  strategyVersion,
+  strategyVersion = '1',
   symbols,
   timeframe,
 }: {
@@ -41,6 +45,7 @@ const strategemizer = async ({
   end: string;
   isFractional?: boolean;
   isRandomlySorted?: boolean;
+  mainOutputDirectory?: string;
   maxLoops?: number;
   maxLossPercent?: number;
   start: string;
@@ -52,18 +57,22 @@ const strategemizer = async ({
   symbols: string[];
   timeframe?: string;
 }): Promise<{ losses: StrategyResult[]; profits: StrategyResult[] }> => {
+  const reportDay = moment().format('YYYY-MM-DD');
+  const reportTime = moment().format('h-mm-ss-a');
   const startTime = moment();
   const strategyConfigVariations = getConfigVariations(strategyConfig);
-  const lossResults = [];
-  const profitResults = [];
   const configVariationLength = strategyConfigVariations.length;
   const hasVariations = configVariationLength > 1;
+  let lossResults = [];
+  let profitResults = [];
 
   if (hasVariations) {
     console.log('');
     console.log('running with config variations', configVariationLength);
     console.log('');
   }
+
+  const outputDirectoryBase = `${mainOutputDirectory}/${strategyKey}_v${strategyVersion}_config_${strategyConfigKey}/${reportDay}/${reportTime}`;
 
   for (const strategyConfigVariation of strategyConfigVariations) {
     if (hasVariations) {
@@ -80,6 +89,11 @@ const strategemizer = async ({
       await delay(3000);
     }
 
+    const variationString = !hasVariations
+      ? ''
+      : `/variation_${strategyConfigVariation.variation}`;
+    const outputDirectory = `${outputDirectoryBase}${variationString}`;
+
     const profit = await testStrategy({
       accountBudget,
       accountBudgetMultiplier,
@@ -93,13 +107,10 @@ const strategemizer = async ({
       isRandomlySorted,
       maxLoops,
       maxLossPercent,
+      outputDirectory,
       start,
       strategy,
       strategyConfig: strategyConfigVariation,
-      strategyConfigKey,
-      strategyConfigVariation: strategyConfigVariation.variation,
-      strategyKey,
-      strategyVersion,
       symbols,
       timeframe,
     });
@@ -111,7 +122,7 @@ const strategemizer = async ({
     console.log('-----------------------------------');
 
     if (profit < 0) {
-      console.log(`❌ - $${formattedProfit} (total loss)`);
+      console.log(`❌ -$${formattedProfit} (total loss)`);
     } else {
       console.log(`✅ $${formattedProfit} (total profit)`);
     }
@@ -122,20 +133,37 @@ const strategemizer = async ({
     // a 3 second delay to read the above in the output
     await delay(3000);
 
-    if (hasVariations) {
-      if (profit < 0) {
-        lossResults.push({
-          variation: strategyConfigVariation.variation,
-          result: `- $${formattedProfit}`,
-        });
-      } else {
-        profitResults.push({
-          variation: strategyConfigVariation.variation,
-          result: `$${formattedProfit}`,
-        });
-      }
+    const summaryPath = path.resolve(`${outputDirectory}/summary.csv`);
+    if (profit < 0) {
+      lossResults.push({
+        summary: summaryPath,
+        profit,
+        variation: strategyConfigVariation.variation,
+        result: `-$${formattedProfit}`,
+      });
+    } else {
+      profitResults.push({
+        summary: summaryPath,
+        profit,
+        variation: strategyConfigVariation.variation,
+        result: `$${formattedProfit}`,
+      });
     }
   }
+
+  // sort to see best and worst first
+  lossResults = sortByKey({
+    array: lossResults,
+    direction: 'ascending',
+    key: 'profit',
+  });
+  profitResults = sortByKey({
+    array: profitResults,
+    direction: 'descending',
+    key: 'profit',
+  });
+
+  console.log('generating overall report...');
 
   if (hasVariations) {
     if (profitResults.length) {
@@ -170,15 +198,55 @@ const strategemizer = async ({
   const diffHours = endTime.diff(startTime, 'hours');
   const diffMinutes = endTime.diff(startTime, 'minutes');
   const diffSeconds = endTime.diff(startTime, 'seconds');
+  let completionTime: string;
   if (diffDays > 0) {
-    console.log(`✔️ completed in ${diffDays.toFixed(2)} days`);
+    completionTime = `${diffDays.toFixed(2)} days`;
   } else if (diffHours > 0) {
-    console.log(`✔️ completed in ${diffHours.toFixed(2)} hours`);
+    completionTime = `${diffHours.toFixed(2)} hours`;
   } else if (diffMinutes > 0) {
-    console.log(`✔️ completed in ${diffMinutes.toFixed(2)} minutes`);
+    completionTime = `${diffMinutes} minutes`;
   } else {
-    console.log(`✔️ completed in ${diffSeconds} seconds`);
+    completionTime = `${diffSeconds} seconds`;
   }
+
+  const time = moment().format('hh:mma, MM/DD/YYYY');
+  console.log(`✔️ completed in ${completionTime} at ${time}`);
+
+  createJsonFile({
+    content: {
+      largestProfit: !profitResults.length ? null : profitResults[0].result,
+      largestLoss: !lossResults.length ? null : lossResults[0].result,
+      completionTime,
+      time,
+      params: {
+        start,
+        end,
+        accountBudget,
+        accountBudgetMultiplier,
+        accountBudgetPercentPerTrade,
+        isFractional,
+        isRandomlySorted,
+        maxLoops,
+        maxLossPercent,
+        strategyConfigKey,
+        strategyKey,
+        strategyVersion,
+        timeframe,
+      },
+      profitResults: profitResults.map((result) => ({
+        result: result.result,
+        variation: result.variation,
+        summary: result.summary,
+      })),
+      lossResults: lossResults.map((result) => ({
+        result: result.result,
+        variation: result.variation,
+        summary: result.summary,
+      })),
+    },
+    directory: outputDirectoryBase,
+    filename: 'summary.json',
+  });
 
   return { losses: lossResults, profits: profitResults };
 };

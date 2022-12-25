@@ -26,6 +26,7 @@ ALPACA_BASE_URL='https://paper-api.alpaca.markets' \
 ALPACA_BASE_URL_DATA='https://data.alpaca.markets' \
 ALPACA_API_KEY_ID='abcd' \
 ALPACA_SECRET_KEY='efgh' \
+MAIN_OUTPUT_DIRECTORY='./output' \
 LOG_LEVEL=verbose \
 npm run strategemizer -- \
   --start "2022-12-05T13:30:00Z" \

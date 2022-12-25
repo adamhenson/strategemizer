@@ -35,7 +35,7 @@ export interface TechnicalIndicatorsInputWithVolume
 }
 
 export interface ConfigRange {
-  increment: number;
+  increment?: number;
   range: [number, number];
   type: 'range';
 }
