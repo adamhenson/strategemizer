@@ -1,8 +1,7 @@
 {
   "name": "strategemizer",
   "version": "0.0.2",
-  "main": "dist/lib/strategemizer.js",
-  "types": "dist/types.d.ts",
+  "main": "dist/index.js",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/adamhenson/strategemizer.git"
