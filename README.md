@@ -38,18 +38,6 @@ MAIN_OUTPUT_DIRECTORY='./output' \
 LOG_LEVEL=verbose
 ```
 
-#### Usage: From Anywhere
-
-```bash
-npx strategemizer -- \
-  --start "2022-12-05T13:30:00Z" \
-  --end "2022-12-09T20:00:00Z" \
-  --strategy-config-key "a" \
-  --strategy-key "bullishEngulfing" \
-  --symbols-key "sAndP500" \
-  --max-loops 20
-```
-
 #### Usage: as an NPM Module
 
 **Note:** Requires ESM support
