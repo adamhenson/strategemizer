@@ -2,6 +2,10 @@
 
 A TypeScript based trading strategy tester, providing the ability to test user-defined strategies on user-defined blocks of history.
 
+## Disclaimer
+
+Although this is a public, "open-source" project - I have no goal to maintain this for broad consumption at this time. It's primarily a personal project, and secondarily open to the public... but will try to keep others in mind who are also using it when I make any major changes. The documentation will stay pretty limited. There will be frequent breaking changes for now. The actual test runner functionality will provide results of strategies, and although the point of this project is to attempt to have tests accurataly reflect reality, I take no responsibility of its accuracy.
+
 **Pre-requisites**
 
 - JavaScript / TypeScript experience
