@@ -1,6 +1,11 @@
 import { Config } from '../../../../types';
 
 const config: Config = {
+  isClosingHighest: {
+    type: 'range',
+    increment: 0,
+    range: [true, false],
+  },
   lossPercent: {
     type: 'range',
     increment: 0.1,
@@ -18,7 +23,7 @@ const config: Config = {
   reversalDropPercentMin: {
     type: 'range',
     increment: 0.1,
-    range: [0.2, 0.5],
+    range: [0.1, 0.3],
   },
   shouldUseTrailPercent: {
     type: 'range',

@@ -58,6 +58,18 @@ const bullishEngulfing = async ({
     return;
   }
 
+  if (typeof config.isClosingHighest && mostRecentBar.c !== mostRecentBar.h) {
+    if (shouldLog) {
+      formattedLog({
+        isBad: true,
+        message: 'closing is not highest',
+        name,
+        symbol,
+      });
+    }
+    return;
+  }
+
   const indicators = getIndicators({
     bars,
   });
