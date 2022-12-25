@@ -3,7 +3,6 @@ import fs from 'fs';
 import moment from 'moment-timezone';
 import path from 'path';
 import { v4 as uuid } from 'uuid';
-import symbols from '../symbols';
 import { Bar, Config, StartAndEnd, Strategy } from '../types';
 import AlpacaClient from './AlpacaClient';
 import getTradingDay from './getTradingDay';
@@ -12,7 +11,6 @@ import {
   getBarsWithRetry,
   getRandomlySortedArray,
   formatCurrencyNumber,
-  numberStringWithCommas,
   sortByKey,
   delay,
 } from './utils';
@@ -48,6 +46,7 @@ let strategyConfig: Config;
 let strategyConfigKey: string;
 let strategyConfigVariation: string | undefined;
 let strategyKey: string;
+let strategyResults: any[] = [];
 let strategyVersion: string;
 let timeframe: string;
 let totalLossTrades = 0;
@@ -176,8 +175,6 @@ const handleResolvedResult = async ({
 
   return tradeData;
 };
-
-let strategyResults: any[] = [];
 
 interface TradeBudget {
   accountBudget: number | null;
@@ -484,6 +481,11 @@ const handleEnd = async (): Promise<number> => {
     fs.mkdirSync(outputDirectory, { recursive: true });
   }
 
+  fs.writeFileSync(
+    `${outputDirectory}/config.json`,
+    JSON.stringify(strategyConfig, null, 2),
+  );
+
   if (LOG_LEVEL.includes('trade-budgets')) {
     fs.writeFileSync(
       `${outputDirectory}/trade-budgets.json`,
@@ -622,21 +624,6 @@ const handleEnd = async (): Promise<number> => {
   console.log('');
   console.log(`✔️ ${strategyConfirmedResults.length} strategy detections`);
 
-  const absoluteProfit = Math.abs(overallFormattedProfit);
-  const finalFormattedProfit = numberStringWithCommas(`${absoluteProfit}`);
-
-  console.log('');
-  console.log('-----------------------------------');
-
-  if (overallFormattedProfit < 0) {
-    console.log(`❌ - $${finalFormattedProfit} (total loss)`);
-  } else {
-    console.log(`✅ $${finalFormattedProfit} (total profit)`);
-  }
-
-  console.log('-----------------------------------');
-  console.log('');
-
   return overallFormattedProfit;
 };
 
@@ -744,7 +731,7 @@ const testStrategy = async ({
   strategyConfigVariation: strategyConfigVariationParam,
   strategyKey: strategyKeyParam,
   strategyVersion: strategyVersionParam = '1',
-  symbolsKey,
+  symbols,
   timeframe: timeframeParam = '1Min',
 }: {
   accountBudget: number;
@@ -766,7 +753,7 @@ const testStrategy = async ({
   strategyConfigVariation?: string;
   strategyKey: string;
   strategyVersion?: string;
-  symbolsKey: string;
+  symbols: string[];
   timeframe?: string;
 }): Promise<number> => {
   accountBudget = accountBudgetParam;
@@ -787,8 +774,10 @@ const testStrategy = async ({
 
   // reset
   overallNetProfit = 0;
+  strategyResults = [];
   totalLossTrades = 0;
   totalProfitTrades = 0;
+  tradeBudgets = [];
 
   console.log('testStrategy payload', {
     accountBudget,
@@ -796,18 +785,18 @@ const testStrategy = async ({
     accountBudgetPercentPerTrade,
     end,
     isFractional,
+    isRandomlySorted,
     maxLossPercent,
     maxLoops,
     start,
     strategyConfigKey,
     strategyKey,
     strategyVersion,
-    symbolsKey,
     timeframe,
   });
 
-  // a 5 second delay to read the above in the output
-  await delay(5000);
+  // a 3 second delay to read the above in the output
+  await delay(3000);
 
   alpacaClient = new AlpacaClient(
     alpacaBaseUrl,
@@ -818,15 +807,15 @@ const testStrategy = async ({
   );
 
   const symbolList = !isRandomlySorted
-    ? symbols[symbolsKey]
-    : getRandomlySortedArray(symbols[symbolsKey]);
+    ? symbols
+    : getRandomlySortedArray(symbols);
   let index = 0;
 
-  while (index < symbolList.length && index < maxLoops - 1) {
+  while (index < symbolList.length && index < maxLoops) {
     const symbol = symbolList[index];
 
     if (LOG_LEVEL.includes('verbose')) {
-      console.log(index, symbol);
+      console.log(index + 1, symbol);
     }
 
     const result: any = await handleSymbol(symbol);

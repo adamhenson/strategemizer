@@ -22,10 +22,16 @@ A TypeScript based trading strategy tester, providing the ability to test user-d
 #### Usage
 
 ```bash
-LOG_LEVEL=verbose npm run strategemizer -- \
+ALPACA_BASE_URL='https://paper-api.alpaca.markets' \
+ALPACA_BASE_URL_DATA='https://data.alpaca.markets' \
+ALPACA_API_KEY_ID='abcd' \
+ALPACA_SECRET_KEY='efgh' \
+LOG_LEVEL=verbose \
+npm run strategemizer -- \
   --start "2022-12-05T13:30:00Z" \
   --end "2022-12-09T20:00:00Z" \
   --strategy-config-key "a" \
   --strategy-key "bullishEngulfing" \
-  --symbols-key "sAndP500"
+  --symbols-key "sAndP500" \
+  --max-loops 20
 ```
