@@ -4,8 +4,7 @@ import {
   ALPACA_API_KEY_ID,
   ALPACA_SECRET_KEY,
 } from '../config';
-import strategies from '../strategies';
-import symbols from '../symbols';
+import { Config, Strategy } from '../types';
 import getConfigVariations from './getConfigVariations';
 import testStrategy from './testStrategy';
 import { delay, numberStringWithCommas } from './utils';
@@ -25,10 +24,12 @@ const strategemizer = async ({
   maxLoops,
   maxLossPercent,
   start,
+  strategy,
+  strategyConfig,
   strategyConfigKey,
   strategyKey,
   strategyVersion,
-  symbolsKey,
+  symbols,
   timeframe,
 }: {
   accountBudget?: number;
@@ -40,14 +41,14 @@ const strategemizer = async ({
   maxLoops?: number;
   maxLossPercent?: number;
   start: string;
+  strategy: Strategy;
+  strategyConfig: Config;
   strategyConfigKey: string;
   strategyKey: string;
   strategyVersion?: string;
-  symbolsKey: string;
+  symbols: string[];
   timeframe?: string;
 }): Promise<{ losses: StrategyResult[]; profits: StrategyResult[] }> => {
-  const { strategy, configs } = strategies[strategyKey];
-  const strategyConfig = configs[strategyConfigKey];
   const strategyConfigVariations = getConfigVariations(strategyConfig);
   const lossResults = [];
   const profitResults = [];
@@ -95,7 +96,7 @@ const strategemizer = async ({
       strategyConfigVariation: strategyConfigVariation.variation,
       strategyKey,
       strategyVersion,
-      symbols: symbols[symbolsKey],
+      symbols,
       timeframe,
     });
 

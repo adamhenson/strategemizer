@@ -1,6 +1,8 @@
 #!/usr/bin/env node
 import meow from 'meow';
 import strategemizer from '../lib/strategemizer';
+import strategies from '../strategies';
+import symbols from '../symbols';
 
 const cli = meow({
   importMeta: import.meta,
@@ -55,4 +57,41 @@ const cli = meow({
   },
 });
 
-strategemizer(cli.flags);
+const {
+  accountBudget,
+  accountBudgetMultiplier,
+  accountBudgetPercentPerTrade,
+  end,
+  isFractional,
+  isRandomlySorted,
+  maxLoops,
+  maxLossPercent,
+  start,
+  strategyConfigKey,
+  strategyKey,
+  strategyVersion,
+  symbolsKey,
+  timeframe,
+} = cli.flags;
+
+const { strategy, configs } = strategies[strategyKey];
+const strategyConfig = configs[strategyConfigKey];
+
+strategemizer({
+  accountBudget,
+  accountBudgetMultiplier,
+  accountBudgetPercentPerTrade,
+  end,
+  isFractional,
+  isRandomlySorted,
+  maxLoops,
+  maxLossPercent,
+  start,
+  strategy,
+  strategyConfig,
+  strategyConfigKey,
+  strategyKey,
+  strategyVersion,
+  symbols: symbols[symbolsKey],
+  timeframe,
+});
