@@ -23,15 +23,58 @@ Although this is a public, "open-source" project - I have no goal to maintain th
 - This project does not promise future outcomes.
 - This project should not be used professionally to steer trading strategies. I've used it as a way to get some kind of insight into strategies before running them in a "paper trading" environment.
 
-#### Usage
+## Usage
 
-```bash
+- Options: see [./src/bin/strategemizer.ts](./src/bin/strategemizer.ts)
+
+**Environment Varables (by Example)**
+
+```
 ALPACA_BASE_URL='https://paper-api.alpaca.markets' \
 ALPACA_BASE_URL_DATA='https://data.alpaca.markets' \
 ALPACA_API_KEY_ID='abcd' \
 ALPACA_SECRET_KEY='efgh' \
 MAIN_OUTPUT_DIRECTORY='./output' \
-LOG_LEVEL=verbose \
+LOG_LEVEL=verbose
+```
+
+#### Usage: From Anywhere
+
+```bash
+npx strategemizer -- \
+  --start "2022-12-05T13:30:00Z" \
+  --end "2022-12-09T20:00:00Z" \
+  --strategy-config-key "a" \
+  --strategy-key "bullishEngulfing" \
+  --symbols-key "sAndP500" \
+  --max-loops 20
+```
+
+#### Usage: as an NPM Module
+
+**Note:** Requires ESM support
+
+```typescript
+import strategemizer from 'strategemizer';
+
+strategemizer({
+  start: '2022-12-05T13:30:00Z',
+  end: '2022-12-09T20:00:00Z',
+  strategyConfigKey: 'a',
+  strategyKey: 'bullishEngulfing',
+  symbolsKey: 'sAndP500',
+  maxLoops: 20,
+})
+```
+
+#### Usage: From this Project
+
+Create the following files, modeling after the sibling `.example.ts` files.
+
+- `./src/strategies/index.ts`
+- `./src/symbols/index.ts`
+
+```bash
 npm run strategemizer -- \
   --start "2022-12-05T13:30:00Z" \
   --end "2022-12-09T20:00:00Z" \

@@ -20,6 +20,11 @@ export interface StrategyResult {
   variation: number;
 }
 
+export type StrategemizerResult = Promise<{
+  losses: StrategyResult[];
+  profits: StrategyResult[];
+}>;
+
 export interface StrategemizerOptions {
   accountBudget?: number;
   accountBudgetMultiplier?: number;
