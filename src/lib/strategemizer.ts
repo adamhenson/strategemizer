@@ -15,9 +15,29 @@ import { delay, numberStringWithCommas, sortByKey } from './utils';
 
 moment.tz.setDefault('America/New_York');
 
-interface StrategyResult {
+export interface StrategyResult {
   result: string;
   variation: number;
+}
+
+export interface StrategemizerOptions {
+  accountBudget?: number;
+  accountBudgetMultiplier?: number;
+  accountBudgetPercentPerTrade?: number;
+  end: string;
+  isFractional?: boolean;
+  isRandomlySorted?: boolean;
+  mainOutputDirectory?: string;
+  maxLoops?: number;
+  maxLossPercent?: number;
+  start: string;
+  strategy: Strategy;
+  strategyConfig: Config;
+  strategyConfigKey: string;
+  strategyKey: string;
+  strategyVersion?: string;
+  symbols: string[];
+  timeframe?: string;
 }
 
 const strategemizer = async ({
@@ -38,25 +58,10 @@ const strategemizer = async ({
   strategyVersion = '1',
   symbols,
   timeframe,
-}: {
-  accountBudget?: number;
-  accountBudgetMultiplier?: number;
-  accountBudgetPercentPerTrade?: number;
-  end: string;
-  isFractional?: boolean;
-  isRandomlySorted?: boolean;
-  mainOutputDirectory?: string;
-  maxLoops?: number;
-  maxLossPercent?: number;
-  start: string;
-  strategy: Strategy;
-  strategyConfig: Config;
-  strategyConfigKey: string;
-  strategyKey: string;
-  strategyVersion?: string;
-  symbols: string[];
-  timeframe?: string;
-}): Promise<{ losses: StrategyResult[]; profits: StrategyResult[] }> => {
+}: StrategemizerOptions): Promise<{
+  losses: StrategyResult[];
+  profits: StrategyResult[];
+}> => {
   const reportDay = moment().format('YYYY-MM-DD');
   const reportTime = moment().format('h-mm-ss-a');
   const startTime = moment();
