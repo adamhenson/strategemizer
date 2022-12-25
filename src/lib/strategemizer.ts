@@ -1,3 +1,4 @@
+import moment from 'moment-timezone';
 import {
   ALPACA_BASE_URL,
   ALPACA_BASE_URL_DATA,
@@ -8,6 +9,8 @@ import { Config, Strategy } from '../types';
 import getConfigVariations from './getConfigVariations';
 import testStrategy from './testStrategy';
 import { delay, numberStringWithCommas } from './utils';
+
+moment.tz.setDefault('America/New_York');
 
 interface StrategyResult {
   result: string;
@@ -49,6 +52,7 @@ const strategemizer = async ({
   symbols: string[];
   timeframe?: string;
 }): Promise<{ losses: StrategyResult[]; profits: StrategyResult[] }> => {
+  const startTime = moment();
   const strategyConfigVariations = getConfigVariations(strategyConfig);
   const lossResults = [];
   const profitResults = [];
@@ -145,7 +149,6 @@ const strategemizer = async ({
           `  • variation ${profitResult.variation}: ${profitResult.result}`,
         );
       }
-      console.log('');
     }
     if (lossResults.length) {
       console.log('');
@@ -160,6 +163,21 @@ const strategemizer = async ({
       }
       console.log('');
     }
+  }
+
+  const endTime = moment();
+  const diffDays = endTime.diff(startTime, 'days');
+  const diffHours = endTime.diff(startTime, 'hours');
+  const diffMinutes = endTime.diff(startTime, 'minutes');
+  const diffSeconds = endTime.diff(startTime, 'seconds');
+  if (diffDays > 0) {
+    console.log(`✔️ completed in ${diffDays.toFixed(2)} days`);
+  } else if (diffHours > 0) {
+    console.log(`✔️ completed in ${diffHours.toFixed(2)} hours`);
+  } else if (diffMinutes > 0) {
+    console.log(`✔️ completed in ${diffMinutes.toFixed(2)} minutes`);
+  } else {
+    console.log(`✔️ completed in ${diffSeconds} seconds`);
   }
 
   return { losses: lossResults, profits: profitResults };

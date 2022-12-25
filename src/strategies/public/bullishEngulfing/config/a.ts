@@ -1,35 +1,15 @@
 import { Config } from '../../../../types';
 
 const config: Config = {
-  isClosingHighest: {
-    type: 'range',
-    increment: 0,
-    range: [true, false],
-  },
-  lossPercent: {
-    type: 'range',
-    increment: 0.1,
-    range: [0.1, 0.3],
-  },
+  isClosingHighest: false,
+  lossPercent: 0.2,
   // maxRsi,
   // minPercentRise,
   // minRvol,
-  profitPercent: {
-    type: 'range',
-    increment: 0.1,
-    range: [0.1, 0.3],
-  },
+  profitPercent: 0.2,
   reversalDropBarCount: 10,
-  reversalDropPercentMin: {
-    type: 'range',
-    increment: 0.1,
-    range: [0.1, 0.3],
-  },
-  shouldUseTrailPercent: {
-    type: 'range',
-    increment: 0,
-    range: [true, false],
-  },
+  reversalDropPercentMin: 0.1,
+  shouldUseTrailPercent: false,
 };
 
 export default config;
