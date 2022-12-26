@@ -464,25 +464,48 @@ const runStrategy = async ({ symbol, start, end }: RunStrategyInput) => {
   }
 };
 
-const handleEnd = async (): Promise<number> => {
+type ResultRecord = number | string | undefined;
+interface ResultTable {
+  header: string[];
+  data: ResultRecord[][];
+}
+interface CustomComparisonResult {
+  name: string;
+  result: ResultTable;
+}
+export interface StrategemizerRunResult {
+  assets: string[];
+  config: Config;
+  customComparisons: CustomComparisonResult[];
+  hours: ResultTable;
+  profit: number;
+  result: ResultTable;
+  summary: ResultTable;
+}
+
+const handleEnd = async (): Promise<StrategemizerRunResult> => {
   await handleResults();
 
+  const configAssetFilename = 'config.json';
   createJsonFile({
     content: strategyConfig,
     directory: outputDirectory,
-    filename: 'config.json',
+    filename: configAssetFilename,
   });
+  const assets = [`${outputDirectory}/${configAssetFilename}`];
 
   if (LOG_LEVEL.includes('trade-budgets')) {
+    const tradeBudgetsFilename = 'trade-budgets.json';
     createJsonFile({
       content: tradeBudgets,
       directory: outputDirectory,
-      filename: 'trade-budgets.json',
+      filename: tradeBudgetsFilename,
     });
+    assets.push(`${outputDirectory}/${tradeBudgetsFilename}`);
   }
 
   // create csv files
-  const csvHeaderList = [
+  const reportHeaderList = [
     'date',
     'symbol',
     'entry price',
@@ -505,8 +528,8 @@ const handleEnd = async (): Promise<number> => {
     'entry time',
     'exit time',
   ];
-  const csvHeader = [...csvHeaderList, 'link'];
-  const csvContent = strategyConfirmedResults.map((data) => {
+  const reportHeader = [...reportHeaderList, 'link'];
+  const reportContent = strategyConfirmedResults.map((data) => {
     const points = data.points.reduce(
       (accumulator: string, current: string) =>
         `${accumulator}&points[]=${current}`,
@@ -561,59 +584,72 @@ const handleEnd = async (): Promise<number> => {
     ];
   });
 
+  const reportFilename = 'report.csv';
   createCsv({
-    content: csvContent,
+    content: reportContent,
     directory: outputDirectory,
-    filename: 'report.csv',
-    header: csvHeader,
+    filename: reportFilename,
+    header: reportHeader,
   });
+  assets.push(`${outputDirectory}/${reportFilename}`);
 
-  const csvSummaryHeader = [
-    'profit',
-    'total profit trades',
-    'total loss trades',
-  ];
+  const summaryHeader = ['profit', 'total profit trades', 'total loss trades'];
   const overallFormattedProfit = formatCurrencyNumber(overallNetProfit);
-  const csvSummaryContent = [
+  const summaryContent = [
     [overallFormattedProfit, totalProfitTrades, totalLossTrades],
   ];
 
+  const summaryFilename = 'summary.csv';
   createCsv({
-    content: csvSummaryContent,
+    content: summaryContent,
     directory: outputDirectory,
-    filename: 'summary.csv',
-    header: csvSummaryHeader,
+    filename: summaryFilename,
+    header: summaryHeader,
   });
+  assets.push(`${outputDirectory}/${summaryFilename}`);
 
-  const csvHoursHeader = ['hour', 'profit', 'trades'];
-  const csvHoursContent = Object.keys(hours).map((hour) => {
+  const hoursHeader = ['hour', 'profit', 'trades'];
+  const hoursContent = Object.keys(hours).map((hour) => {
     const data = hours[hour];
     const profit = formatCurrencyNumber(data.profit);
     return [hour, profit, data.trades];
   });
 
+  const hoursFilename = 'hours.csv';
   createCsv({
-    content: csvHoursContent,
+    content: hoursContent,
     directory: outputDirectory,
-    filename: 'hours.csv',
-    header: csvHoursHeader,
+    filename: hoursFilename,
+    header: hoursHeader,
   });
+  assets.push(`${outputDirectory}/${hoursFilename}`);
+
+  const customComparisonResults: CustomComparisonResult[] = [];
 
   if (Object.keys(customComparisons).length) {
     for (const group in customComparisons) {
-      const csvCustomComparisonsHeader = ['name', 'profit', 'trades'];
-      const csvCustomComparisonsContent = Object.keys(
+      const customComparisonsHeader = ['name', 'profit', 'trades'];
+      const customComparisonsContent = Object.keys(
         customComparisons[group],
       ).map((name) => {
         const customComparison = customComparisons[group][name];
         const profit = formatCurrencyNumber(customComparison.profit);
         return [name, profit, customComparison.trades];
       });
+      const customComparisonFilename = `custom-comparison-${group}.csv`;
       createCsv({
-        content: csvCustomComparisonsContent,
+        content: customComparisonsContent,
         directory: outputDirectory,
-        filename: `custom-comparison-${group}.csv`,
-        header: csvCustomComparisonsHeader,
+        filename: customComparisonFilename,
+        header: customComparisonsHeader,
+      });
+      assets.push(`${outputDirectory}/${customComparisonFilename}`);
+      customComparisonResults.push({
+        name: group,
+        result: {
+          header: customComparisonsHeader,
+          data: customComparisonsContent,
+        },
       });
     }
   }
@@ -621,7 +657,24 @@ const handleEnd = async (): Promise<number> => {
   console.log('');
   console.log(`✔️ ${strategyConfirmedResults.length} strategy detections`);
 
-  return overallFormattedProfit;
+  return {
+    assets,
+    config: strategyConfig,
+    customComparisons: customComparisonResults,
+    hours: {
+      header: hoursHeader,
+      data: hoursContent,
+    },
+    profit: overallFormattedProfit,
+    result: {
+      header: reportHeader,
+      data: reportContent,
+    },
+    summary: {
+      header: summaryHeader,
+      data: summaryContent,
+    },
+  };
 };
 
 const tradeDayStartAndEndHashMap: Record<string, StartAndEnd> = {};
@@ -746,7 +799,7 @@ const testStrategy = async ({
   strategyConfig: Config;
   symbols: string[];
   timeframe?: string;
-}): Promise<number> => {
+}): Promise<StrategemizerRunResult> => {
   accountBudget = accountBudgetParam;
   accountBudgetMultiplier = accountBudgetMultiplierParam;
   accountBudgetPercentPerTrade = accountBudgetPercentPerTradeParam;

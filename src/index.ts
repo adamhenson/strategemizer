@@ -4,5 +4,6 @@ export {
   default,
   StrategemizerOptions,
   StrategemizerResult,
+  StrategemizerRunResult,
 } from './lib/strategemizer';
 export { utils };

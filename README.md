@@ -25,7 +25,10 @@ Although this is a public, "open-source" project - I have no goal to maintain th
 
 ## Usage
 
-- Options: see [./src/bin/strategemizer.ts](./src/bin/strategemizer.ts)
+For available options see either of the below files (CLI vs module).
+
+- [./src/bin/strategemizer.ts](./src/bin/strategemizer.ts)
+- [./src/lib/strategemizer.ts](./src/lib/strategemizer.ts)
 
 **Environment Varables (by Example)**
 

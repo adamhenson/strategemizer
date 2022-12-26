@@ -10,10 +10,12 @@ import {
 import { Config, Strategy } from '../types';
 import createJsonFile from './createJsonFile';
 import getConfigVariations from './getConfigVariations';
-import testStrategy from './testStrategy';
+import testStrategy, { StrategemizerRunResult } from './testStrategy';
 import { delay, numberStringWithCommas, sortByKey } from './utils';
 
 moment.tz.setDefault('America/New_York');
+
+export { StrategemizerRunResult };
 
 export interface StrategyResult {
   result: string;
@@ -30,6 +32,7 @@ export interface StrategemizerOptions {
   accountBudgetMultiplier?: number;
   accountBudgetPercentPerTrade?: number;
   end: string;
+  handleResult?: (result: StrategemizerRunResult) => void;
   isFractional?: boolean;
   isRandomlySorted?: boolean;
   mainOutputDirectory?: string;
@@ -50,6 +53,7 @@ const strategemizer = async ({
   accountBudgetMultiplier = 4,
   accountBudgetPercentPerTrade = 100,
   end,
+  handleResult,
   isFractional,
   isRandomlySorted,
   mainOutputDirectory = MAIN_OUTPUT_DIRECTORY,
@@ -104,7 +108,7 @@ const strategemizer = async ({
       : `/variation_${strategyConfigVariation.variation}`;
     const outputDirectory = `${outputDirectoryBase}${variationString}`;
 
-    const profit = await testStrategy({
+    const result = await testStrategy({
       accountBudget,
       accountBudgetMultiplier,
       accountBudgetPercentPerTrade,
@@ -125,13 +129,17 @@ const strategemizer = async ({
       timeframe,
     });
 
-    const absoluteProfit = Math.abs(profit);
+    if (handleResult) {
+      handleResult(result);
+    }
+
+    const absoluteProfit = Math.abs(result.profit);
     const formattedProfit = numberStringWithCommas(`${absoluteProfit}`);
 
     console.log('');
     console.log('-----------------------------------');
 
-    if (profit < 0) {
+    if (result.profit < 0) {
       console.log(`❌ -$${formattedProfit} (total loss)`);
     } else {
       console.log(`✅ $${formattedProfit} (total profit)`);
@@ -144,17 +152,17 @@ const strategemizer = async ({
     await delay(3000);
 
     const summaryPath = path.resolve(`${outputDirectory}/summary.csv`);
-    if (profit < 0) {
+    if (result.profit < 0) {
       lossResults.push({
         summary: summaryPath,
-        profit,
+        profit: result.profit,
         variation: strategyConfigVariation.variation,
         result: `-$${formattedProfit}`,
       });
     } else {
       profitResults.push({
         summary: summaryPath,
-        profit,
+        profit: result.profit,
         variation: strategyConfigVariation.variation,
         result: `$${formattedProfit}`,
       });
@@ -210,17 +218,21 @@ const strategemizer = async ({
   const diffSeconds = endTime.diff(startTime, 'seconds');
   let completionTime: string;
   if (diffDays > 0) {
-    completionTime = `${diffDays.toFixed(2)} days`;
+    const unitText = diffDays === 1 ? 'day' : 'days';
+    completionTime = `${diffDays.toFixed(2)} ${unitText}`;
   } else if (diffHours > 0) {
-    completionTime = `${diffHours.toFixed(2)} hours`;
+    const unitText = diffHours === 1 ? 'hour' : 'hours';
+    completionTime = `${diffHours.toFixed(2)} ${unitText}`;
   } else if (diffMinutes > 0) {
-    completionTime = `${diffMinutes} minutes`;
+    const unitText = diffMinutes === 1 ? 'minute' : 'minutes';
+    completionTime = `${diffMinutes} ${unitText}`;
   } else {
-    completionTime = `${diffSeconds} seconds`;
+    const unitText = diffSeconds === 1 ? 'second' : 'seconds';
+    completionTime = `${diffSeconds} ${unitText}`;
   }
 
   const time = moment().format('hh:mma, MM/DD/YYYY');
-  console.log(`✔️ completed in ${completionTime} at ${time}`);
+  console.log(`✔️ completed in ${completionTime} at ${time} EST`);
 
   createJsonFile({
     content: {
