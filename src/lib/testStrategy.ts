@@ -489,9 +489,10 @@ export interface StrategemizerRunResult {
 const handleEnd = async (): Promise<StrategemizerRunResult> => {
   await handleResults();
 
+  outputDirectory = path.resolve(outputDirectory);
   createDirectory(outputDirectory);
 
-  const configFilePath = path.resolve(`${outputDirectory}/config.json`);
+  const configFilePath = `${outputDirectory}/config.json`;
   createJsonFile({
     content: strategyConfig,
     outputPath: configFilePath,
@@ -499,9 +500,7 @@ const handleEnd = async (): Promise<StrategemizerRunResult> => {
   const assets = [configFilePath];
 
   if (LOG_LEVEL.includes('trade-budgets')) {
-    const tradeBudgetsFilePath = path.resolve(
-      `${outputDirectory}/trade-budgets.json`,
-    );
+    const tradeBudgetsFilePath = `${outputDirectory}/trade-budgets.json`;
     createJsonFile({
       content: tradeBudgets,
       outputPath: tradeBudgetsFilePath,
@@ -589,7 +588,7 @@ const handleEnd = async (): Promise<StrategemizerRunResult> => {
     ];
   });
 
-  const reportFilePath = path.resolve(`${outputDirectory}/report.csv`);
+  const reportFilePath = `${outputDirectory}/report.csv`;
   createCsv({
     content: reportDataRows,
     header: reportHeaderRow,
@@ -607,7 +606,7 @@ const handleEnd = async (): Promise<StrategemizerRunResult> => {
     [overallFormattedProfit, totalProfitTrades, totalLossTrades],
   ];
 
-  const summaryFilePath = path.resolve(`${outputDirectory}/summary.csv`);
+  const summaryFilePath = `${outputDirectory}/summary.csv`;
   createCsv({
     content: summaryDataRows,
     header: summaryHeaderRow,
@@ -622,7 +621,7 @@ const handleEnd = async (): Promise<StrategemizerRunResult> => {
     return [hour, profit, data.trades];
   });
 
-  const hoursFilePath = path.resolve(`${outputDirectory}/hours.csv`);
+  const hoursFilePath = `${outputDirectory}/hours.csv`;
   createCsv({
     content: hoursDataRows,
     header: hoursHeaderRow,
@@ -642,9 +641,7 @@ const handleEnd = async (): Promise<StrategemizerRunResult> => {
         const profit = formatCurrencyNumber(customComparison.profit);
         return [name, profit, customComparison.trades];
       });
-      const customComparisonFilePath = path.resolve(
-        `${outputDirectory}/custom-comparison-${group}.csv`,
-      );
+      const customComparisonFilePath = `${outputDirectory}/custom-comparison-${group}.csv`;
       createCsv({
         content: customComparisonsDataRows,
         header: customComparisonsHeaderRow,
