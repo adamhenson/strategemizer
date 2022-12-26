@@ -68,7 +68,7 @@ const strategemizer = async ({
   symbols,
   timeframe,
 }: StrategemizerOptions): StrategemizerResult => {
-  const reportDay = moment().format('YYYY-MM-DD');
+  const reportDate = moment().format('YYYY-MM-DD');
   const reportTime = moment().format('h-mm-ss-a');
   const startTime = moment();
   const strategyConfigVariations = getConfigVariations(strategyConfig);
@@ -83,7 +83,7 @@ const strategemizer = async ({
     console.log('');
   }
 
-  const outputDirectoryBase = `${mainOutputDirectory}/${strategyKey}/v_${strategyVersion}/config_${strategyConfigKey}/${reportDay}/${reportTime}`;
+  const outputDirectoryBase = `${mainOutputDirectory}/${strategyKey}/v_${strategyVersion}/config_${strategyConfigKey}/${reportDate}/${reportTime}`;
 
   for (const strategyConfigVariation of strategyConfigVariations) {
     if (hasVariations) {
@@ -119,11 +119,13 @@ const strategemizer = async ({
       maxLoops,
       maxLossPercent,
       outputDirectory,
+      reportDate,
       start,
       strategy,
       strategyConfig: strategyConfigVariation,
       strategyConfigKey,
       strategyConfigVariationKey: strategyConfigVariation.variation,
+      strategyVersion,
       strategyKey,
       symbols,
       timeframe,

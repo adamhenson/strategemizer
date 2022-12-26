@@ -45,12 +45,14 @@ let outputDirectory: string;
 let overallEnd: string;
 let overallNetProfit = 0;
 let overallStart: string;
+let reportDate: string;
 let strategy: Strategy;
 let strategyConfig: StrategyConfig;
 let strategyConfigKey: string;
 let strategyConfigVariationKey: string | undefined;
 let strategyKey: string;
 let strategyResults: any[] = [];
+let strategyVersion: string;
 let timeframe: string;
 let totalLossTrades = 0;
 let totalProfitTrades = 0;
@@ -485,10 +487,12 @@ export interface StrategemizerRunResult {
   customComparisons: CustomComparisonResult[];
   hours: ResultTable;
   profit: number;
+  reportDate: string;
   result: ResultTable;
   strategyConfigKey: string;
   strategyConfigVariationKey?: string;
   strategyKey: string;
+  strategyVersion: string;
   summary: ResultTable;
 }
 
@@ -678,6 +682,7 @@ const handleEnd = async (): Promise<StrategemizerRunResult> => {
       dataRows: hoursDataRows,
     },
     profit: overallFormattedProfit,
+    reportDate,
     result: {
       headerRow: reportHeaderRow,
       dataRows: reportDataRows,
@@ -685,6 +690,7 @@ const handleEnd = async (): Promise<StrategemizerRunResult> => {
     strategyConfigKey,
     strategyConfigVariationKey,
     strategyKey,
+    strategyVersion,
     summary: {
       headerRow: summaryHeaderRow,
       dataRows: summaryDataRows,
@@ -790,12 +796,14 @@ const testStrategy = async ({
   maxLoops: maxLoopsParam = Infinity,
   maxLossPercent: maxLossPercentParam,
   outputDirectory: outputDirectoryParam,
+  reportDate: reportDateParam,
   start,
   strategy: strategyParam,
   strategyConfig: strategyConfigParam,
   strategyConfigKey: strategyConfigKeyParam,
   strategyConfigVariationKey: strategyConfigVariationKeyParam,
   strategyKey: strategyKeyParam,
+  strategyVersion: strategyVersionParam,
   symbols,
   timeframe: timeframeParam = '1Min',
 }: {
@@ -812,12 +820,14 @@ const testStrategy = async ({
   maxLoops?: number;
   maxLossPercent?: number;
   outputDirectory: string;
+  reportDate: string;
   start: string;
   strategy: Strategy;
   strategyConfig: StrategyConfig;
   strategyConfigKey: string;
   strategyConfigVariationKey: string | undefined;
   strategyKey: string;
+  strategyVersion: string;
   symbols: string[];
   timeframe?: string;
 }): Promise<StrategemizerRunResult> => {
@@ -830,11 +840,13 @@ const testStrategy = async ({
   outputDirectory = outputDirectoryParam;
   overallEnd = end;
   overallStart = start;
+  reportDate = reportDateParam;
   strategy = strategyParam;
   strategyConfig = strategyConfigParam;
   strategyConfigKey = strategyConfigKeyParam;
   strategyConfigVariationKey = strategyConfigVariationKeyParam;
   strategyKey = strategyKeyParam;
+  strategyVersion = strategyVersionParam;
   timeframe = timeframeParam;
 
   // reset
