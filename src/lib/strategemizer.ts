@@ -83,7 +83,7 @@ const strategemizer = async ({
     console.log('');
   }
 
-  const outputDirectoryBase = `${mainOutputDirectory}/${strategyKey}_v${strategyVersion}_config_${strategyConfigKey}/${reportDay}/${reportTime}`;
+  const outputDirectoryBase = `${mainOutputDirectory}/${strategyKey}/v_${strategyVersion}/config_${strategyConfigKey}/${reportDay}/${reportTime}`;
 
   for (const strategyConfigVariation of strategyConfigVariations) {
     if (hasVariations) {
