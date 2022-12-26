@@ -32,7 +32,7 @@ export interface StrategemizerOptions {
   accountBudgetMultiplier?: number;
   accountBudgetPercentPerTrade?: number;
   end: string;
-  handleResult?: (result: StrategemizerRunResult) => void;
+  handleResult?: (result: StrategemizerRunResult) => Promise<void>;
   isFractional?: boolean;
   isRandomlySorted?: boolean;
   mainOutputDirectory?: string;
@@ -127,7 +127,7 @@ const strategemizer = async ({
     });
 
     if (handleResult) {
-      handleResult(result);
+      await handleResult(result);
     }
 
     const absoluteProfit = Math.abs(result.profit);
