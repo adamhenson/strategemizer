@@ -466,8 +466,8 @@ const runStrategy = async ({ symbol, start, end }: RunStrategyInput) => {
 
 type ResultRecord = number | string | undefined;
 interface ResultTable {
-  header: string[];
-  data: ResultRecord[][];
+  headerRow: string[];
+  dataRows: ResultRecord[][];
 }
 interface CustomComparisonResult {
   name: string;
@@ -505,7 +505,7 @@ const handleEnd = async (): Promise<StrategemizerRunResult> => {
   }
 
   // create csv files
-  const reportHeaderList = [
+  const reportHeaderRowList = [
     'date',
     'symbol',
     'entry price',
@@ -528,8 +528,8 @@ const handleEnd = async (): Promise<StrategemizerRunResult> => {
     'entry time',
     'exit time',
   ];
-  const reportHeader = [...reportHeaderList, 'link'];
-  const reportContent = strategyConfirmedResults.map((data) => {
+  const reportHeaderRow = [...reportHeaderRowList, 'link'];
+  const reportDataRows = strategyConfirmedResults.map((data) => {
     const points = data.points.reduce(
       (accumulator: string, current: string) =>
         `${accumulator}&points[]=${current}`,
@@ -586,30 +586,34 @@ const handleEnd = async (): Promise<StrategemizerRunResult> => {
 
   const reportFilename = 'report.csv';
   createCsv({
-    content: reportContent,
+    content: reportDataRows,
     directory: outputDirectory,
     filename: reportFilename,
-    header: reportHeader,
+    header: reportHeaderRow,
   });
   assets.push(`${outputDirectory}/${reportFilename}`);
 
-  const summaryHeader = ['profit', 'total profit trades', 'total loss trades'];
+  const summaryHeaderRow = [
+    'profit',
+    'total profit trades',
+    'total loss trades',
+  ];
   const overallFormattedProfit = formatCurrencyNumber(overallNetProfit);
-  const summaryContent = [
+  const summaryDataRows = [
     [overallFormattedProfit, totalProfitTrades, totalLossTrades],
   ];
 
   const summaryFilename = 'summary.csv';
   createCsv({
-    content: summaryContent,
+    content: summaryDataRows,
     directory: outputDirectory,
     filename: summaryFilename,
-    header: summaryHeader,
+    header: summaryHeaderRow,
   });
   assets.push(`${outputDirectory}/${summaryFilename}`);
 
-  const hoursHeader = ['hour', 'profit', 'trades'];
-  const hoursContent = Object.keys(hours).map((hour) => {
+  const hoursHeaderRow = ['hour', 'profit', 'trades'];
+  const hoursDataRows = Object.keys(hours).map((hour) => {
     const data = hours[hour];
     const profit = formatCurrencyNumber(data.profit);
     return [hour, profit, data.trades];
@@ -617,10 +621,10 @@ const handleEnd = async (): Promise<StrategemizerRunResult> => {
 
   const hoursFilename = 'hours.csv';
   createCsv({
-    content: hoursContent,
+    content: hoursDataRows,
     directory: outputDirectory,
     filename: hoursFilename,
-    header: hoursHeader,
+    header: hoursHeaderRow,
   });
   assets.push(`${outputDirectory}/${hoursFilename}`);
 
@@ -628,8 +632,8 @@ const handleEnd = async (): Promise<StrategemizerRunResult> => {
 
   if (Object.keys(customComparisons).length) {
     for (const group in customComparisons) {
-      const customComparisonsHeader = ['name', 'profit', 'trades'];
-      const customComparisonsContent = Object.keys(
+      const customComparisonsHeaderRow = ['name', 'profit', 'trades'];
+      const customComparisonsDataRows = Object.keys(
         customComparisons[group],
       ).map((name) => {
         const customComparison = customComparisons[group][name];
@@ -638,17 +642,17 @@ const handleEnd = async (): Promise<StrategemizerRunResult> => {
       });
       const customComparisonFilename = `custom-comparison-${group}.csv`;
       createCsv({
-        content: customComparisonsContent,
+        content: customComparisonsDataRows,
         directory: outputDirectory,
         filename: customComparisonFilename,
-        header: customComparisonsHeader,
+        header: customComparisonsHeaderRow,
       });
       assets.push(`${outputDirectory}/${customComparisonFilename}`);
       customComparisonResults.push({
         name: group,
         result: {
-          header: customComparisonsHeader,
-          data: customComparisonsContent,
+          headerRow: customComparisonsHeaderRow,
+          dataRows: customComparisonsDataRows,
         },
       });
     }
@@ -662,17 +666,17 @@ const handleEnd = async (): Promise<StrategemizerRunResult> => {
     config: strategyConfig,
     customComparisons: customComparisonResults,
     hours: {
-      header: hoursHeader,
-      data: hoursContent,
+      headerRow: hoursHeaderRow,
+      dataRows: hoursDataRows,
     },
     profit: overallFormattedProfit,
     result: {
-      header: reportHeader,
-      data: reportContent,
+      headerRow: reportHeaderRow,
+      dataRows: reportDataRows,
     },
     summary: {
-      header: summaryHeader,
-      data: summaryContent,
+      headerRow: summaryHeaderRow,
+      dataRows: summaryDataRows,
     },
   };
 };
