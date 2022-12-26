@@ -8,7 +8,7 @@ import {
   getPercentChange,
   getTechnicalIndicatorsInput,
 } from '../../../lib/utils';
-import { Bar, Config } from '../../../types';
+import { Bar, StrategyConfig } from '../../../types';
 import configs from './config';
 
 moment.tz.setDefault('America/New_York');
@@ -23,7 +23,7 @@ const threeWhiteSoldiers = async ({
   symbol,
 }: {
   bars: Bar[];
-  config: Config;
+  config: StrategyConfig;
   symbol: string;
 }) => {
   if (!bars?.length) {

@@ -1,11 +1,11 @@
-import { Config } from '../types';
+import { StrategyConfig } from '../types';
 import getCombinations from './combinations';
 
 type NumberOrBoolean = number | boolean;
 
 // when a config has a range signified by a tuple, generate all
 // possible variations
-const getConfigVariations = (config: Config): Config[] => {
+const getConfigVariations = (config: StrategyConfig): StrategyConfig[] => {
   const [variationKeys, standardKeys] = Object.keys(config).reduce(
     (accumulator: [string[], string[]], current) => {
       const value = config[current];
@@ -65,22 +65,25 @@ const getConfigVariations = (config: Config): Config[] => {
   const combinations = getCombinations(Object.values(variations));
   const finalRangeKeys = Object.keys(variations);
 
-  return combinations.reduce((accumulator: Config[], current, index) => {
-    return [
-      ...accumulator,
-      {
-        ...standardConfig,
-        ...current.reduce(
-          (accumulator, current, index) => ({
-            ...accumulator,
-            [finalRangeKeys[index]]: current,
-          }),
-          {},
-        ),
-        variation: index + 1,
-      },
-    ];
-  }, []);
+  return combinations.reduce(
+    (accumulator: StrategyConfig[], current, index) => {
+      return [
+        ...accumulator,
+        {
+          ...standardConfig,
+          ...current.reduce(
+            (accumulator, current, index) => ({
+              ...accumulator,
+              [finalRangeKeys[index]]: current,
+            }),
+            {},
+          ),
+          variation: index + 1,
+        },
+      ];
+    },
+    [],
+  );
 };
 
 export default getConfigVariations;

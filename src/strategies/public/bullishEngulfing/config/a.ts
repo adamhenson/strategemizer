@@ -1,6 +1,6 @@
-import { Config } from '../../../../types';
+import { StrategyConfig } from '../../../../types';
 
-const config: Config = {
+const config: StrategyConfig = {
   isClosingHighest: false,
   lossPercent: 0.2,
   minRvol: {

@@ -1,6 +1,6 @@
-import { Config } from '../../../../types';
+import { StrategyConfig } from '../../../../types';
 
-const config: Config = {
+const config: StrategyConfig = {
   lossPercent: {
     type: 'range',
     increment: 0.1,

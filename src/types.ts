@@ -39,13 +39,13 @@ export interface ConfigRange {
   range: [number, number];
   type: 'range';
 }
-export type Config = Record<string, ConfigRange | any>;
-export type Configs = Record<string, Config>;
+export type StrategyConfig = Record<string, ConfigRange | any>;
+export type StrategyConfigs = Record<string, StrategyConfig>;
 
 export type Strategy = (options: any) => Promise<any>;
 export interface StrategyWithConfigs {
   strategy: (options: any) => Promise<any>;
-  configs: Configs;
+  configs: StrategyConfigs;
 }
 export type StrategyCollection = Record<string, StrategyWithConfigs>;
 

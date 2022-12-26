@@ -7,7 +7,7 @@ import {
   ALPACA_SECRET_KEY,
   MAIN_OUTPUT_DIRECTORY,
 } from '../config';
-import { Config, Strategy } from '../types';
+import { StrategyConfig, Strategy } from '../types';
 import createJsonFile from './createJsonFile';
 import getConfigVariations from './getConfigVariations';
 import testStrategy, { StrategemizerRunResult } from './testStrategy';
@@ -40,7 +40,7 @@ export interface StrategemizerOptions {
   maxLossPercent?: number;
   start: string;
   strategy: Strategy;
-  strategyConfig: Config;
+  strategyConfig: StrategyConfig;
   strategyConfigKey: string;
   strategyKey: string;
   strategyVersion?: string;

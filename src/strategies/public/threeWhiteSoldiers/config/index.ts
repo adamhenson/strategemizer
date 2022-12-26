@@ -1,7 +1,7 @@
-import { Configs } from '../../../../types';
+import { StrategyConfigs } from '../../../../types';
 import a from './a';
 
-const configs: Configs = {
+const configs: StrategyConfigs = {
   a,
 };
 

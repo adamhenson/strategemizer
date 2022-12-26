@@ -1,7 +1,7 @@
 // this file is loosely typed as it was copied from another project
 import moment from 'moment-timezone';
 import { v4 as uuid } from 'uuid';
-import { Bar, Config, StartAndEnd, Strategy } from '../types';
+import { Bar, StrategyConfig, StartAndEnd, Strategy } from '../types';
 import AlpacaClient from './AlpacaClient';
 import createCsv from './createCsv';
 import createJsonFile from './createJsonFile';
@@ -43,7 +43,7 @@ let overallEnd: string;
 let overallNetProfit = 0;
 let overallStart: string;
 let strategy: Strategy;
-let strategyConfig: Config;
+let strategyConfig: StrategyConfig;
 let strategyResults: any[] = [];
 let timeframe: string;
 let totalLossTrades = 0;
@@ -475,7 +475,7 @@ interface CustomComparisonResult {
 }
 export interface StrategemizerRunResult {
   assets: string[];
-  config: Config;
+  config: StrategyConfig;
   customComparisons: CustomComparisonResult[];
   hours: ResultTable;
   profit: number;
@@ -796,7 +796,7 @@ const testStrategy = async ({
   outputDirectory: string;
   start: string;
   strategy: Strategy;
-  strategyConfig: Config;
+  strategyConfig: StrategyConfig;
   symbols: string[];
   timeframe?: string;
 }): Promise<StrategemizerRunResult> => {
