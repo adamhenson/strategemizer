@@ -16,8 +16,6 @@ import { delay, numberStringWithCommas, sortByKey } from './utils';
 
 moment.tz.setDefault('America/New_York');
 
-export { StrategemizerRunResult };
-
 export interface StrategyResult {
   result: string;
   variation: number;
@@ -150,17 +148,18 @@ const strategemizer = async ({
     // a 3 second delay to read the above in the output
     await delay(3000);
 
-    const summaryPath = path.resolve(`${outputDirectory}/summary.csv`);
+    const assetPath = path.resolve(`${outputDirectory}.zip`);
+
     if (result.profit < 0) {
       lossResults.push({
-        summary: summaryPath,
+        assets: assetPath,
         profit: result.profit,
         variation: strategyConfigVariation.variation,
         result: `-$${formattedProfit}`,
       });
     } else {
       profitResults.push({
-        summary: summaryPath,
+        assets: assetPath,
         profit: result.profit,
         variation: strategyConfigVariation.variation,
         result: `$${formattedProfit}`,
@@ -260,12 +259,12 @@ const strategemizer = async ({
       profitResults: profitResults.map((result) => ({
         result: result.result,
         variation: result.variation,
-        summary: result.summary,
+        assets: result.assets,
       })),
       lossResults: lossResults.map((result) => ({
         result: result.result,
         variation: result.variation,
-        summary: result.summary,
+        assets: result.assets,
       })),
     },
     outputPath: summaryFilePath,

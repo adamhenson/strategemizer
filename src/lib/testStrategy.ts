@@ -4,6 +4,7 @@ import path from 'path';
 import { v4 as uuid } from 'uuid';
 import { Bar, StrategyConfig, StartAndEnd, Strategy } from '../types';
 import AlpacaClient from './AlpacaClient';
+import archiveDirectory from './archiveDirectory';
 import createCsv from './createCsv';
 import createDirectory from './createDirectory';
 import createJsonFile from './createJsonFile';
@@ -476,7 +477,7 @@ interface CustomComparisonResult {
   result: ResultTable;
 }
 export interface StrategemizerRunResult {
-  assets: string[];
+  assets: string;
   config: StrategyConfig;
   customComparisons: CustomComparisonResult[];
   hours: ResultTable;
@@ -660,11 +661,13 @@ const handleEnd = async (): Promise<StrategemizerRunResult> => {
     }
   }
 
+  const zippedAssets = await archiveDirectory(outputDirectory);
+
   console.log('');
   console.log(`✔️ ${strategyConfirmedResults.length} strategy detections`);
 
   return {
-    assets,
+    assets: zippedAssets,
     config: strategyConfig,
     customComparisons: customComparisonResults,
     hours: {

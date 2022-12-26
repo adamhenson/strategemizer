@@ -1,10 +1,10 @@
 import * as utils from './lib/utils';
 
+export { StrategemizerRunResult } from './lib/testStrategy';
 export {
   default,
   StrategemizerOptions,
   StrategemizerResult,
-  StrategemizerRunResult,
 } from './lib/strategemizer';
 export {
   Bar,
