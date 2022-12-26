@@ -47,6 +47,9 @@ let overallNetProfit = 0;
 let overallStart: string;
 let strategy: Strategy;
 let strategyConfig: StrategyConfig;
+let strategyConfigKey: string;
+let strategyConfigVariationKey: string | undefined;
+let strategyKey: string;
 let strategyResults: any[] = [];
 let timeframe: string;
 let totalLossTrades = 0;
@@ -483,6 +486,9 @@ export interface StrategemizerRunResult {
   hours: ResultTable;
   profit: number;
   result: ResultTable;
+  strategyConfigKey: string;
+  strategyConfigVariationKey?: string;
+  strategyKey: string;
   summary: ResultTable;
 }
 
@@ -676,6 +682,9 @@ const handleEnd = async (): Promise<StrategemizerRunResult> => {
       headerRow: reportHeaderRow,
       dataRows: reportDataRows,
     },
+    strategyConfigKey,
+    strategyConfigVariationKey,
+    strategyKey,
     summary: {
       headerRow: summaryHeaderRow,
       dataRows: summaryDataRows,
@@ -784,6 +793,9 @@ const testStrategy = async ({
   start,
   strategy: strategyParam,
   strategyConfig: strategyConfigParam,
+  strategyConfigKey: strategyConfigKeyParam,
+  strategyConfigVariationKey: strategyConfigVariationKeyParam,
+  strategyKey: strategyKeyParam,
   symbols,
   timeframe: timeframeParam = '1Min',
 }: {
@@ -803,6 +815,9 @@ const testStrategy = async ({
   start: string;
   strategy: Strategy;
   strategyConfig: StrategyConfig;
+  strategyConfigKey: string;
+  strategyConfigVariationKey: string | undefined;
+  strategyKey: string;
   symbols: string[];
   timeframe?: string;
 }): Promise<StrategemizerRunResult> => {
@@ -817,6 +832,9 @@ const testStrategy = async ({
   overallStart = start;
   strategy = strategyParam;
   strategyConfig = strategyConfigParam;
+  strategyConfigKey = strategyConfigKeyParam;
+  strategyConfigVariationKey = strategyConfigVariationKeyParam;
+  strategyKey = strategyKeyParam;
   timeframe = timeframeParam;
 
   // reset

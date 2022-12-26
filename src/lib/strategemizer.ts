@@ -122,6 +122,9 @@ const strategemizer = async ({
       start,
       strategy,
       strategyConfig: strategyConfigVariation,
+      strategyConfigKey,
+      strategyConfigVariationKey: strategyConfigVariation.variation,
+      strategyKey,
       symbols,
       timeframe,
     });
