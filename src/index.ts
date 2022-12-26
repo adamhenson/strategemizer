@@ -1,6 +1,6 @@
 import * as utils from './lib/utils';
 
-export { StrategemizerRunResult } from './lib/testStrategy';
+export { ResultTable, StrategemizerRunResult } from './lib/testStrategy';
 export {
   default,
   StrategemizerOptions,

@@ -468,7 +468,7 @@ const runStrategy = async ({ symbol, start, end }: RunStrategyInput) => {
 };
 
 type ResultRecord = number | string | undefined;
-interface ResultTable {
+export interface ResultTable {
   headerRow: string[];
   dataRows: ResultRecord[][];
 }
