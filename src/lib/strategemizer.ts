@@ -8,6 +8,7 @@ import {
   MAIN_OUTPUT_DIRECTORY,
 } from '../config';
 import { StrategyConfig, Strategy } from '../types';
+import createDirectory from './createDirectory';
 import createJsonFile from './createJsonFile';
 import getConfigVariations from './getConfigVariations';
 import testStrategy, { StrategemizerRunResult } from './testStrategy';
@@ -25,6 +26,7 @@ export interface StrategyResult {
 export type StrategemizerResult = Promise<{
   losses: StrategyResult[];
   profits: StrategyResult[];
+  summary: string;
 }>;
 
 export interface StrategemizerOptions {
@@ -67,10 +69,7 @@ const strategemizer = async ({
   strategyVersion = '1',
   symbols,
   timeframe,
-}: StrategemizerOptions): Promise<{
-  losses: StrategyResult[];
-  profits: StrategyResult[];
-}> => {
+}: StrategemizerOptions): StrategemizerResult => {
   const reportDay = moment().format('YYYY-MM-DD');
   const reportTime = moment().format('h-mm-ss-a');
   const startTime = moment();
@@ -234,6 +233,9 @@ const strategemizer = async ({
   const time = moment().format('hh:mma, MM/DD/YYYY');
   console.log(`✔️ completed in ${completionTime} at ${time} EST`);
 
+  createDirectory(outputDirectoryBase);
+  const summaryFilePath = path.resolve(`${outputDirectoryBase}/summary.json`);
+
   createJsonFile({
     content: {
       largestProfit: !profitResults.length ? null : profitResults[0].result,
@@ -266,11 +268,14 @@ const strategemizer = async ({
         summary: result.summary,
       })),
     },
-    directory: outputDirectoryBase,
-    filename: 'summary.json',
+    outputPath: summaryFilePath,
   });
 
-  return { losses: lossResults, profits: profitResults };
+  return {
+    losses: lossResults,
+    profits: profitResults,
+    summary: summaryFilePath,
+  };
 };
 
 export default strategemizer;

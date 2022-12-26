@@ -1,9 +1,11 @@
 // this file is loosely typed as it was copied from another project
 import moment from 'moment-timezone';
+import path from 'path';
 import { v4 as uuid } from 'uuid';
 import { Bar, StrategyConfig, StartAndEnd, Strategy } from '../types';
 import AlpacaClient from './AlpacaClient';
 import createCsv from './createCsv';
+import createDirectory from './createDirectory';
 import createJsonFile from './createJsonFile';
 import getTradingDay from './getTradingDay';
 import simulateTrade from './simulateTrade';
@@ -486,22 +488,24 @@ export interface StrategemizerRunResult {
 const handleEnd = async (): Promise<StrategemizerRunResult> => {
   await handleResults();
 
-  const configAssetFilename = 'config.json';
+  createDirectory(outputDirectory);
+
+  const configFilePath = path.resolve(`${outputDirectory}/config.json`);
   createJsonFile({
     content: strategyConfig,
-    directory: outputDirectory,
-    filename: configAssetFilename,
+    outputPath: configFilePath,
   });
-  const assets = [`${outputDirectory}/${configAssetFilename}`];
+  const assets = [configFilePath];
 
   if (LOG_LEVEL.includes('trade-budgets')) {
-    const tradeBudgetsFilename = 'trade-budgets.json';
+    const tradeBudgetsFilePath = path.resolve(
+      `${outputDirectory}/trade-budgets.json`,
+    );
     createJsonFile({
       content: tradeBudgets,
-      directory: outputDirectory,
-      filename: tradeBudgetsFilename,
+      outputPath: tradeBudgetsFilePath,
     });
-    assets.push(`${outputDirectory}/${tradeBudgetsFilename}`);
+    assets.push(tradeBudgetsFilePath);
   }
 
   // create csv files
@@ -584,14 +588,13 @@ const handleEnd = async (): Promise<StrategemizerRunResult> => {
     ];
   });
 
-  const reportFilename = 'report.csv';
+  const reportFilePath = path.resolve(`${outputDirectory}/report.csv`);
   createCsv({
     content: reportDataRows,
-    directory: outputDirectory,
-    filename: reportFilename,
     header: reportHeaderRow,
+    outputPath: reportFilePath,
   });
-  assets.push(`${outputDirectory}/${reportFilename}`);
+  assets.push(reportFilePath);
 
   const summaryHeaderRow = [
     'profit',
@@ -603,14 +606,13 @@ const handleEnd = async (): Promise<StrategemizerRunResult> => {
     [overallFormattedProfit, totalProfitTrades, totalLossTrades],
   ];
 
-  const summaryFilename = 'summary.csv';
+  const summaryFilePath = path.resolve(`${outputDirectory}/summary.csv`);
   createCsv({
     content: summaryDataRows,
-    directory: outputDirectory,
-    filename: summaryFilename,
     header: summaryHeaderRow,
+    outputPath: summaryFilePath,
   });
-  assets.push(`${outputDirectory}/${summaryFilename}`);
+  assets.push(summaryFilePath);
 
   const hoursHeaderRow = ['hour', 'profit', 'trades'];
   const hoursDataRows = Object.keys(hours).map((hour) => {
@@ -619,14 +621,13 @@ const handleEnd = async (): Promise<StrategemizerRunResult> => {
     return [hour, profit, data.trades];
   });
 
-  const hoursFilename = 'hours.csv';
+  const hoursFilePath = path.resolve(`${outputDirectory}/hours.csv`);
   createCsv({
     content: hoursDataRows,
-    directory: outputDirectory,
-    filename: hoursFilename,
     header: hoursHeaderRow,
+    outputPath: hoursFilePath,
   });
-  assets.push(`${outputDirectory}/${hoursFilename}`);
+  assets.push(hoursFilePath);
 
   const customComparisonResults: CustomComparisonResult[] = [];
 
@@ -640,14 +641,15 @@ const handleEnd = async (): Promise<StrategemizerRunResult> => {
         const profit = formatCurrencyNumber(customComparison.profit);
         return [name, profit, customComparison.trades];
       });
-      const customComparisonFilename = `custom-comparison-${group}.csv`;
+      const customComparisonFilePath = path.resolve(
+        `${outputDirectory}/custom-comparison-${group}.csv`,
+      );
       createCsv({
         content: customComparisonsDataRows,
-        directory: outputDirectory,
-        filename: customComparisonFilename,
         header: customComparisonsHeaderRow,
+        outputPath: customComparisonFilePath,
       });
-      assets.push(`${outputDirectory}/${customComparisonFilename}`);
+      assets.push(customComparisonFilePath);
       customComparisonResults.push({
         name: group,
         result: {
