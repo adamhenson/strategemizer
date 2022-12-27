@@ -45,7 +45,7 @@ export interface StrategemizerOptions {
 
 export type LooseNumber = number | null | undefined;
 
-export type StrategemizerGroupRunResult = Promise<{
+export interface StrategemizerGroupRunResult {
   largestProfit: LooseNumber;
   largestLoss: LooseNumber;
   timeElapsed: string;
@@ -58,7 +58,7 @@ export type StrategemizerGroupRunResult = Promise<{
   strategyVersion: string;
   variationCount: number;
   summaryFilePath: string;
-}>;
+}
 
 const strategemizer = async ({
   accountBudget = 120000,
@@ -79,7 +79,7 @@ const strategemizer = async ({
   strategyVersion = '1',
   symbols,
   timeframe,
-}: StrategemizerOptions): StrategemizerGroupRunResult => {
+}: StrategemizerOptions): Promise<StrategemizerGroupRunResult> => {
   const reportDate = moment().format('YYYY-MM-DD');
   const reportTime = moment().format('h-mm-ss-a');
   const startTime = moment();
