@@ -229,7 +229,7 @@ let tradeBudgets: TradeBudget[] = [
 const resolveTradeResults = async () => {
   console.log('');
   console.log(
-    '◉ starting trade simulation (b): final trade (without conflicted trade times handled)',
+    '◉ starting trade simulation (b): final trade (conflicted trade times handled)',
   );
   console.log('');
   for (const [index, tradeBudget] of tradeBudgets.entries()) {
