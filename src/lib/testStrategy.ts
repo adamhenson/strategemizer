@@ -229,7 +229,7 @@ let tradeBudgets: TradeBudget[] = [
 const resolveTradeResults = async () => {
   console.log('');
   console.log(
-    '◉ starting trade simulation: final trade (without conflicting trade times)',
+    '◉ starting trade simulation (b): final trade (without conflicted trade times handled)',
   );
   console.log('');
   for (const [index, tradeBudget] of tradeBudgets.entries()) {
@@ -305,12 +305,12 @@ const resolveTradeResults = async () => {
         tradeData.spent + change * accountBudgetMultiplier;
     }
   }
-  console.log('✔️ final trade simulation complete.');
+  console.log('✔️ completed trade simulation (b)');
 };
 
 const handleResults = async () => {
   console.log(
-    '◉ starting trade simulation: gathering conflicting entry and exit points',
+    '◉ starting trade simulation (a): including those with conflicting entry and exit points',
   );
   console.log('');
 
@@ -365,9 +365,7 @@ const handleResults = async () => {
     );
   }
 
-  console.log(
-    '✔️ completed simulation of all trades with conflicting trade times',
-  );
+  console.log('✔️ completed trade simulation (a)');
 
   tradeBudgets = sortByKey({
     array: tradeBudgets,
