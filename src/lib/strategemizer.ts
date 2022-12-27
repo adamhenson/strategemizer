@@ -18,7 +18,7 @@ moment.tz.setDefault('America/New_York');
 
 export interface StrategyResult {
   profit: number;
-  variation: number;
+  variation: number | string | undefined;
   assets: string;
 }
 
