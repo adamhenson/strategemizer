@@ -53,6 +53,10 @@ export type StrategemizerGroupRunResult = Promise<{
   params: Partial<StrategemizerOptions>;
   losses: StrategyResult[];
   profits: StrategyResult[];
+  strategy: string;
+  strategyConfig: string;
+  strategyVersion: string;
+  variationCount: number;
   summaryFilePath: string;
 }>;
 
@@ -297,10 +301,25 @@ const strategemizer = async ({
     largestLoss,
     timeElapsed,
     timeAtCompletion,
-    params,
+    params: {
+      start,
+      end,
+      accountBudget,
+      accountBudgetMultiplier,
+      accountBudgetPercentPerTrade,
+      isFractional,
+      isRandomlySorted,
+      maxLoops,
+      maxLossPercent,
+      timeframe,
+    },
     profits: thinProfitResults,
     losses: thinLossResults,
+    strategy: strategyKey,
+    strategyConfig: strategyConfigKey,
+    strategyVersion: strategyVersion,
     summaryFilePath,
+    variationCount: configVariationLength,
   };
 };
 
