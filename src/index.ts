@@ -4,7 +4,7 @@ export { ResultTable, StrategemizerRunResult } from './lib/testStrategy';
 export {
   default,
   StrategemizerOptions,
-  StrategemizerResult,
+  StrategemizerGroupRunResult,
 } from './lib/strategemizer';
 export {
   Bar,

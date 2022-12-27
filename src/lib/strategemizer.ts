@@ -17,15 +17,10 @@ import { delay, numberStringWithCommas, sortByKey } from './utils';
 moment.tz.setDefault('America/New_York');
 
 export interface StrategyResult {
-  result: string;
+  profit: number;
   variation: number;
+  assets: string;
 }
-
-export type StrategemizerResult = Promise<{
-  losses: StrategyResult[];
-  profits: StrategyResult[];
-  summary: string;
-}>;
 
 export interface StrategemizerOptions {
   accountBudget?: number;
@@ -48,6 +43,17 @@ export interface StrategemizerOptions {
   timeframe?: string;
 }
 
+export type StrategemizerGroupRunResult = Promise<{
+  largestProfit: number | null | undefined;
+  largestLoss: number | null | undefined;
+  timeElapsed: string;
+  timeAtCompletion: string;
+  params: Partial<StrategemizerOptions>;
+  losses: StrategyResult[];
+  profits: StrategyResult[];
+  summaryFilePath: string;
+}>;
+
 const strategemizer = async ({
   accountBudget = 120000,
   accountBudgetMultiplier = 4,
@@ -67,7 +73,7 @@ const strategemizer = async ({
   strategyVersion = '1',
   symbols,
   timeframe,
-}: StrategemizerOptions): StrategemizerResult => {
+}: StrategemizerOptions): StrategemizerGroupRunResult => {
   const reportDate = moment().format('YYYY-MM-DD');
   const reportTime = moment().format('h-mm-ss-a');
   const startTime = moment();
@@ -220,66 +226,79 @@ const strategemizer = async ({
   const diffHours = endTime.diff(startTime, 'hours');
   const diffMinutes = endTime.diff(startTime, 'minutes');
   const diffSeconds = endTime.diff(startTime, 'seconds');
-  let completionTime: string;
+  let timeElapsed: string;
   if (diffDays > 0) {
     const unitText = diffDays === 1 ? 'day' : 'days';
-    completionTime = `${diffDays.toFixed(2)} ${unitText}`;
+    timeElapsed = `${diffDays.toFixed(2)} ${unitText}`;
   } else if (diffHours > 0) {
     const unitText = diffHours === 1 ? 'hour' : 'hours';
-    completionTime = `${diffHours.toFixed(2)} ${unitText}`;
+    timeElapsed = `${diffHours.toFixed(2)} ${unitText}`;
   } else if (diffMinutes > 0) {
     const unitText = diffMinutes === 1 ? 'minute' : 'minutes';
-    completionTime = `${diffMinutes} ${unitText}`;
+    timeElapsed = `${diffMinutes} ${unitText}`;
   } else {
     const unitText = diffSeconds === 1 ? 'second' : 'seconds';
-    completionTime = `${diffSeconds} ${unitText}`;
+    timeElapsed = `${diffSeconds} ${unitText}`;
   }
 
-  const time = moment().format('hh:mma, MM/DD/YYYY');
-  console.log(`✔️ completed in ${completionTime} at ${time} EST`);
+  const timeAtCompletion = moment().format('hh:mma, MM/DD/YYYY');
+  console.log(`✔️ completed in ${timeElapsed} at ${timeAtCompletion} EST`);
 
   createDirectory(outputDirectoryBase);
   const summaryFilePath = path.resolve(`${outputDirectoryBase}/summary.json`);
 
+  const params = {
+    start,
+    end,
+    accountBudget,
+    accountBudgetMultiplier,
+    accountBudgetPercentPerTrade,
+    isFractional,
+    isRandomlySorted,
+    maxLoops,
+    maxLossPercent,
+    strategyConfigKey,
+    strategyKey,
+    strategyVersion,
+    timeframe,
+  };
+
+  const thinProfitResults = profitResults.map((result) => ({
+    profit: result.profit,
+    variation: result.variation,
+    assets: result.assets,
+  }));
+  const thinLossResults = lossResults.map((result) => ({
+    profit: result.profit,
+    variation: result.variation,
+    assets: result.assets,
+  }));
+
+  const largestProfit = !profitResults.length ? null : profitResults[0].result;
+  const largestLoss = !lossResults.length ? null : lossResults[0].result;
+
   createJsonFile({
     content: {
-      largestProfit: !profitResults.length ? null : profitResults[0].result,
-      largestLoss: !lossResults.length ? null : lossResults[0].result,
-      completionTime,
-      time,
-      params: {
-        start,
-        end,
-        accountBudget,
-        accountBudgetMultiplier,
-        accountBudgetPercentPerTrade,
-        isFractional,
-        isRandomlySorted,
-        maxLoops,
-        maxLossPercent,
-        strategyConfigKey,
-        strategyKey,
-        strategyVersion,
-        timeframe,
-      },
-      profitResults: profitResults.map((result) => ({
-        result: result.result,
-        variation: result.variation,
-        assets: result.assets,
-      })),
-      lossResults: lossResults.map((result) => ({
-        result: result.result,
-        variation: result.variation,
-        assets: result.assets,
-      })),
+      largestProfit,
+      largestLoss,
+      timeElapsed,
+      timeAtCompletion,
+      params,
+      profitResults: thinProfitResults,
+      lossResults: thinLossResults,
     },
     outputPath: summaryFilePath,
   });
 
   return {
-    losses: lossResults,
-    profits: profitResults,
-    summary: summaryFilePath,
+    largestProfit,
+    largestLoss,
+    timeElapsed,
+    timeAtCompletion,
+    params,
+    profits: thinProfitResults,
+    losses: thinLossResults,
+    summaryFilePath,
   };
 };
 
