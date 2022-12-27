@@ -43,9 +43,11 @@ export interface StrategemizerOptions {
   timeframe?: string;
 }
 
+export type LooseNumber = number | null | undefined;
+
 export type StrategemizerGroupRunResult = Promise<{
-  largestProfit: number | null | undefined;
-  largestLoss: number | null | undefined;
+  largestProfit: LooseNumber;
+  largestLoss: LooseNumber;
   timeElapsed: string;
   timeAtCompletion: string;
   params: Partial<StrategemizerOptions>;
