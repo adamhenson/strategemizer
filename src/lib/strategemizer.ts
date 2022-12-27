@@ -54,6 +54,8 @@ export interface StrategemizerGroupRunResult {
   params: Partial<StrategemizerOptions>;
   losses: StrategyResult[];
   profits: StrategyResult[];
+  reportDate: string;
+  reportTime: string;
   strategy: string;
   strategyConfig: string;
   strategyVersion: string;
@@ -322,6 +324,8 @@ const strategemizer = async ({
     },
     profits: thinProfitResults,
     losses: thinLossResults,
+    reportDate,
+    reportTime,
     strategy: strategyKey,
     strategyConfig: strategyConfigKey,
     strategyVersion: strategyVersion,
