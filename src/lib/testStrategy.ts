@@ -731,7 +731,7 @@ const handleSymbol = async (symbol: string) => {
     );
 
     if (diff <= 0) {
-      console.log(`✔️ completed`);
+      console.log(`✔️ completed ${symbol}`);
       return;
     }
 
