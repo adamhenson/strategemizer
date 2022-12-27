@@ -120,6 +120,7 @@ const strategemizer = async ({
       maxLossPercent,
       outputDirectory,
       reportDate,
+      reportTime,
       start,
       strategy,
       strategyConfig: strategyConfigVariation,
