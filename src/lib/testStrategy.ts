@@ -46,6 +46,7 @@ let overallEnd: string;
 let overallNetProfit = 0;
 let overallStart: string;
 let reportDate: string;
+let reportTime: string;
 let strategy: Strategy;
 let strategyConfig: StrategyConfig;
 let strategyConfigKey: string;
@@ -488,6 +489,7 @@ export interface StrategemizerRunResult {
   hours: ResultTable;
   profit: number;
   reportDate: string;
+  reportTime: string;
   result: ResultTable;
   strategyConfigKey: string;
   strategyConfigVariationKey?: string;
@@ -683,6 +685,7 @@ const handleEnd = async (): Promise<StrategemizerRunResult> => {
     },
     profit: overallFormattedProfit,
     reportDate,
+    reportTime,
     result: {
       headerRow: reportHeaderRow,
       dataRows: reportDataRows,
@@ -797,6 +800,7 @@ const testStrategy = async ({
   maxLossPercent: maxLossPercentParam,
   outputDirectory: outputDirectoryParam,
   reportDate: reportDateParam,
+  reportTime: reportTimeParam,
   start,
   strategy: strategyParam,
   strategyConfig: strategyConfigParam,
@@ -821,6 +825,7 @@ const testStrategy = async ({
   maxLossPercent?: number;
   outputDirectory: string;
   reportDate: string;
+  reportTime: string;
   start: string;
   strategy: Strategy;
   strategyConfig: StrategyConfig;
@@ -841,6 +846,7 @@ const testStrategy = async ({
   overallEnd = end;
   overallStart = start;
   reportDate = reportDateParam;
+  reportTime = reportTimeParam;
   strategy = strategyParam;
   strategyConfig = strategyConfigParam;
   strategyConfigKey = strategyConfigKeyParam;
