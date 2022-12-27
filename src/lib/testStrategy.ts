@@ -227,7 +227,11 @@ let tradeBudgets: TradeBudget[] = [
 ];
 
 const resolveTradeResults = async () => {
-  console.log('final trade simulation (without conflicting trade times)...');
+  console.log('');
+  console.log(
+    '◉ starting trade simulation: final trade (without conflicting trade times)',
+  );
+  console.log('');
   for (const [index, tradeBudget] of tradeBudgets.entries()) {
     const tradeAccountBudget = !index
       ? accountBudget
@@ -306,8 +310,10 @@ const resolveTradeResults = async () => {
 
 const handleResults = async () => {
   console.log(
-    'simulating all trades with conflicting trade times to gather entry and exit points...',
+    '◉ starting trade simulation: gathering conflicting entry and exit points',
   );
+  console.log('');
+
   strategyResults = sortByKey({
     array: strategyResults,
     key: 'tTime',
@@ -735,7 +741,9 @@ const handleSymbol = async (symbol: string) => {
     );
 
     if (diff <= 0) {
-      console.log(`✔️ completed ${symbol}`);
+      console.log('');
+      console.log(`✔️ completed trade data collection for ${symbol}`);
+      console.log('');
       return;
     }
 
@@ -868,7 +876,7 @@ const testStrategy = async ({
   totalProfitTrades = 0;
   tradeBudgets = [];
 
-  console.log('testStrategy payload', {
+  console.log('params', {
     accountBudget,
     accountBudgetMultiplier,
     accountBudgetPercentPerTrade,
@@ -881,6 +889,7 @@ const testStrategy = async ({
     start,
     timeframe,
   });
+  console.log('');
 
   // a 3 second delay to read the above in the output
   await delay(3000);
@@ -898,6 +907,9 @@ const testStrategy = async ({
     : getRandomlySortedArray(symbols);
   let index = 0;
 
+  console.log('◉ collecting trade data for each day for each symbol...');
+  console.log('');
+
   while (index < symbolList.length && index < maxLoops) {
     const symbol = symbolList[index];
 
@@ -914,6 +926,8 @@ const testStrategy = async ({
 
     index++;
   }
+
+  console.log('');
 
   const finalOverallProfit = await handleEnd();
   return finalOverallProfit;

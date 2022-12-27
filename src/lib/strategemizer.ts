@@ -11,6 +11,7 @@ import { StrategyConfig, Strategy } from '../types';
 import createDirectory from './createDirectory';
 import createJsonFile from './createJsonFile';
 import getConfigVariations from './getConfigVariations';
+import getPackage from './getPackage';
 import testStrategy, { StrategemizerRunResult } from './testStrategy';
 import { delay, numberStringWithCommas, sortByKey } from './utils';
 
@@ -43,7 +44,7 @@ export interface StrategemizerOptions {
   timeframe?: string;
 }
 
-export type LooseNumber = number | null | undefined;
+export type LooseNumber = number | undefined;
 
 export interface StrategemizerGroupRunResult {
   largestProfit: LooseNumber;
@@ -89,19 +90,26 @@ const strategemizer = async ({
   let lossResults = [];
   let profitResults = [];
 
+  const packageContent = await getPackage();
+  const packageContentParsed = JSON.parse(packageContent);
+
+  console.log('-----------------------------------');
+  console.log('');
+  console.log(`${packageContentParsed.name}@${packageContentParsed.version}`);
+  console.log('');
+  console.log('-----------------------------------');
+
   if (hasVariations) {
     console.log('');
-    console.log('running with config variations', configVariationLength);
-    console.log('');
+    console.log('◉ running with', configVariationLength, 'config variations');
   }
 
   const outputDirectoryBase = `${mainOutputDirectory}/${strategyKey}/v_${strategyVersion}/config_${strategyConfigKey}/${reportDate}/${reportTime}`;
 
   for (const strategyConfigVariation of strategyConfigVariations) {
     if (hasVariations) {
-      console.log('');
       console.log(
-        'running variation',
+        '◉ running variation',
         strategyConfigVariation.variation,
         'of',
         configVariationLength,
@@ -202,9 +210,9 @@ const strategemizer = async ({
   if (hasVariations) {
     if (profitResults.length) {
       console.log('');
-      console.log('-------------------------------');
+      console.log('-----------------------------------');
       console.log(`✅ config variations with profit`);
-      console.log('-------------------------------');
+      console.log('-----------------------------------');
       console.log('');
       for (const profitResult of profitResults) {
         console.log(
@@ -214,9 +222,9 @@ const strategemizer = async ({
     }
     if (lossResults.length) {
       console.log('');
-      console.log('-------------------------------');
+      console.log('-----------------------------------');
       console.log(`❌ config variations with loss`);
-      console.log('-------------------------------');
+      console.log('-----------------------------------');
       console.log('');
       for (const lossResult of lossResults) {
         console.log(
@@ -280,13 +288,12 @@ const strategemizer = async ({
     assets: result.assets,
   }));
 
-  const largestProfit = !profitResults.length ? null : profitResults[0].result;
-  const largestLoss = !lossResults.length ? null : lossResults[0].result;
-
   createJsonFile({
     content: {
-      largestProfit,
-      largestLoss,
+      largestProfit: !profitResults.length
+        ? undefined
+        : profitResults[0].result,
+      largestLoss: !lossResults.length ? undefined : lossResults[0].result,
       timeElapsed,
       timeAtCompletion,
       params,
@@ -297,8 +304,8 @@ const strategemizer = async ({
   });
 
   return {
-    largestProfit,
-    largestLoss,
+    largestProfit: !profitResults.length ? undefined : profitResults[0].profit,
+    largestLoss: !lossResults.length ? undefined : lossResults[0].profit,
     timeElapsed,
     timeAtCompletion,
     params: {
