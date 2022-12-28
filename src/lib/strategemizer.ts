@@ -28,7 +28,7 @@ export interface StrategemizerOptions {
   accountBudgetMultiplier?: number;
   accountBudgetPercentPerTrade?: number;
   end: string;
-  handleResult?: (result: StrategemizerRunResult) => Promise<void>;
+  handleResult?: (result: StrategemizerRunResult | null) => Promise<void>;
   isFractional?: boolean;
   isRandomlySorted?: boolean;
   mainOutputDirectory?: string;
