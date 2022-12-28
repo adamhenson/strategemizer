@@ -59,8 +59,9 @@ export interface StrategemizerGroupRunResult {
   strategy: string;
   strategyConfig: string;
   strategyVersion: string;
-  variationCount: number;
   summaryFilePath: string;
+  variationCount: number;
+  variationsWithResultsCount: number;
 }
 
 const strategemizer = async ({
@@ -108,6 +109,8 @@ const strategemizer = async ({
 
   const outputDirectoryBase = `${mainOutputDirectory}/${strategyKey}/v_${strategyVersion}/config_${strategyConfigKey}/${reportDate}/${reportTime}`;
 
+  let variationsWithResultsCount = 0;
+
   for (const strategyConfigVariation of strategyConfigVariations) {
     if (hasVariations) {
       console.log(
@@ -153,6 +156,11 @@ const strategemizer = async ({
       symbols,
       timeframe,
     });
+
+    if (!result) {
+      continue;
+    }
+    variationsWithResultsCount++;
 
     if (handleResult) {
       await handleResult(result);
@@ -331,6 +339,7 @@ const strategemizer = async ({
     strategyVersion: strategyVersion,
     summaryFilePath,
     variationCount: configVariationLength,
+    variationsWithResultsCount,
   };
 };
 

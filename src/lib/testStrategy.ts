@@ -229,7 +229,7 @@ let tradeBudgets: TradeBudget[] = [
 const resolveTradeResults = async () => {
   console.log('');
   console.log(
-    '◉ starting trade simulation (b): final trade (conflicted trade times handled)',
+    '◉ starting trade simulation (b): final trade (prevents conflicting trade times)',
   );
   console.log('');
   for (const [index, tradeBudget] of tradeBudgets.entries()) {
@@ -506,8 +506,12 @@ export interface StrategemizerRunResult {
   summary: ResultTable;
 }
 
-const handleEnd = async (): Promise<StrategemizerRunResult> => {
+const handleEnd = async (): Promise<StrategemizerRunResult | null> => {
   await handleResults();
+
+  if (overallNetProfit === 0) {
+    return null;
+  }
 
   outputDirectory = path.resolve(outputDirectory);
   createDirectory(outputDirectory);
@@ -845,7 +849,7 @@ const testStrategy = async ({
   strategyVersion: string;
   symbols: string[];
   timeframe?: string;
-}): Promise<StrategemizerRunResult> => {
+}): Promise<StrategemizerRunResult | null> => {
   accountBudget = accountBudgetParam;
   accountBudgetMultiplier = accountBudgetMultiplierParam;
   accountBudgetPercentPerTrade = accountBudgetPercentPerTradeParam;
@@ -927,8 +931,8 @@ const testStrategy = async ({
 
   console.log('');
 
-  const finalOverallProfit = await handleEnd();
-  return finalOverallProfit;
+  const runResult = await handleEnd();
+  return runResult;
 };
 
 export default testStrategy;
