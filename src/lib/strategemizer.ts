@@ -160,7 +160,7 @@ const strategemizer = async ({
     if (!result) {
       console.log('');
       console.log('-----------------------------------');
-      console.log(`0️⃣ no results`);
+      console.log(`0️⃣  no results`);
       console.log('-----------------------------------');
       console.log('');
       continue;
