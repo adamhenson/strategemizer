@@ -6,6 +6,7 @@ export {
   LooseNumber,
   StrategemizerOptions,
   StrategemizerGroupRunResult,
+  StrategemizerGroupRunStartData,
   StrategemizerRunResult,
   StrategyResult,
 } from './lib/strategemizer';
