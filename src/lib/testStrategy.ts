@@ -501,9 +501,9 @@ export interface StrategemizerRunResultBase {
   reportDate: string;
   reportTime: string;
   result: ResultTable;
-  strategyConfigKey: string;
-  strategyConfigVariationKey?: string;
-  strategyKey: string;
+  strategyConfig: string;
+  strategyConfigVariation?: string;
+  strategy: string;
   strategyVersion: string;
   summary: ResultTable;
 }
@@ -708,9 +708,9 @@ const handleEnd = async (): Promise<StrategemizerRunResultBase | null> => {
       headerRow: reportHeaderRow,
       dataRows: reportDataRows,
     },
-    strategyConfigKey,
-    strategyConfigVariationKey,
-    strategyKey,
+    strategy: strategyKey,
+    strategyConfig: strategyConfigKey,
+    strategyConfigVariation: strategyConfigVariationKey,
     strategyVersion,
     summary: {
       headerRow: summaryHeaderRow,
