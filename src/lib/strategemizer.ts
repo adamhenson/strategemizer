@@ -26,6 +26,8 @@ export interface StrategyResult {
 export type LooseNumber = number | undefined;
 
 export interface StrategemizerRunResult extends StrategemizerRunResultBase {
+  losses: StrategyResult[];
+  profits: StrategyResult[];
   variationsRanCount: number;
   variationsWithResultsCount: number;
 }
@@ -218,14 +220,6 @@ const strategemizer = async ({
     }
     variationsWithResultsCount++;
 
-    if (handleResult) {
-      await handleResult({
-        ...result,
-        variationsRanCount,
-        variationsWithResultsCount,
-      });
-    }
-
     const absoluteProfit = Math.abs(result.profit);
     const formattedProfit = numberStringWithCommas(`${absoluteProfit}`);
 
@@ -246,34 +240,50 @@ const strategemizer = async ({
 
     const assetPath = path.resolve(`${outputDirectory}.zip`);
 
+    const runResultItemBase = {
+      ...(!shouldReturnAssetPaths
+        ? {}
+        : {
+            assets: assetPath,
+          }),
+      profit: result.profit,
+      variation: strategyConfigVariation.variation,
+    };
+
     if (result.profit < 0) {
       lossResults.push({
-        assets: assetPath,
-        profit: result.profit,
-        variation: strategyConfigVariation.variation,
+        ...runResultItemBase,
         result: `-$${formattedProfit}`,
       });
     } else {
       profitResults.push({
-        assets: assetPath,
-        profit: result.profit,
-        variation: strategyConfigVariation.variation,
+        ...runResultItemBase,
         result: `$${formattedProfit}`,
       });
     }
-  }
 
-  // sort to see best and worst first
-  lossResults = sortByKey({
-    array: lossResults,
-    direction: 'ascending',
-    key: 'profit',
-  });
-  profitResults = sortByKey({
-    array: profitResults,
-    direction: 'descending',
-    key: 'profit',
-  });
+    // sort to see best and worst first
+    lossResults = sortByKey({
+      array: lossResults,
+      direction: 'ascending',
+      key: 'profit',
+    });
+    profitResults = sortByKey({
+      array: profitResults,
+      direction: 'descending',
+      key: 'profit',
+    });
+
+    if (handleResult) {
+      await handleResult({
+        ...result,
+        losses: lossResults,
+        profits: profitResults,
+        variationsRanCount,
+        variationsWithResultsCount,
+      });
+    }
+  }
 
   console.log('generating overall report...');
 
@@ -331,25 +341,6 @@ const strategemizer = async ({
   createDirectory(outputDirectoryBase);
   const summaryFilePath = path.resolve(`${outputDirectoryBase}/summary.json`);
 
-  const thinProfitResults = profitResults.map((result) => ({
-    profit: result.profit,
-    variation: result.variation,
-    ...(!shouldReturnAssetPaths
-      ? {}
-      : {
-          assets: result.assets,
-        }),
-  }));
-  const thinLossResults = lossResults.map((result) => ({
-    profit: result.profit,
-    variation: result.variation,
-    ...(!shouldReturnAssetPaths
-      ? {}
-      : {
-          assets: result.assets,
-        }),
-  }));
-
   createJsonFile({
     content: {
       largestProfit: !profitResults.length
@@ -359,8 +350,8 @@ const strategemizer = async ({
       timeElapsed,
       timeAtCompletion,
       params,
-      profitResults: thinProfitResults,
-      lossResults: thinLossResults,
+      profitResults,
+      lossResults,
     },
     outputPath: summaryFilePath,
   });
@@ -371,8 +362,8 @@ const strategemizer = async ({
     timeElapsed,
     timeAtCompletion,
     params: paramsBase,
-    profits: thinProfitResults,
-    losses: thinLossResults,
+    profits: profitResults,
+    losses: lossResults,
     reportDate,
     reportTime,
     strategy: strategyKey,
