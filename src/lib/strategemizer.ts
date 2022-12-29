@@ -25,25 +25,26 @@ export interface StrategyResult {
 
 export type LooseNumber = number | undefined;
 
-export interface StrategemizerGroupUpdates {
-  largestProfit: LooseNumber;
-  largestLoss: LooseNumber;
-  losses: StrategyResult[];
-  profits: StrategyResult[];
-  variationsRanCount: number;
-  variationsWithResultsCount: number;
-}
-
-export interface StrategemizerGroupRunStartData {
-  params: Partial<StrategemizerOptions>;
+export interface StrategemizerGroupBase {
   reportDate: string;
   reportTime: string;
   strategy: string;
   strategyConfig: string;
   strategyVersion: string;
-  variationCount: number;
   variationsRanCount: number;
   variationsWithResultsCount: number;
+}
+
+export interface StrategemizerGroupUpdates extends StrategemizerGroupBase {
+  largestProfit: LooseNumber;
+  largestLoss: LooseNumber;
+  losses: StrategyResult[];
+  profits: StrategyResult[];
+}
+
+export interface StrategemizerGroupRunStartData extends StrategemizerGroupBase {
+  params: Partial<StrategemizerOptions>;
+  variationCount: number;
 }
 
 export interface StrategemizerGroupRunResult
@@ -298,6 +299,11 @@ const strategemizer = async ({
             : profitResults[0].profit,
           largestLoss: !lossResults.length ? undefined : lossResults[0].profit,
           losses: lossResults,
+          reportDate,
+          reportTime,
+          strategy: strategyKey,
+          strategyConfig: strategyConfigKey,
+          strategyVersion: strategyVersion,
           profits: profitResults,
           variationsRanCount,
           variationsWithResultsCount,
