@@ -1,13 +1,12 @@
 import * as utils from './lib/utils';
 
-export { ResultTable } from './lib/testStrategy';
+export { ResultTable, StrategemizerRunResult } from './lib/testStrategy';
 export {
   default,
   LooseNumber,
   StrategemizerOptions,
   StrategemizerGroupRunResult,
   StrategemizerGroupRunStartData,
-  StrategemizerRunResult,
   StrategyResult,
 } from './lib/strategemizer';
 export {

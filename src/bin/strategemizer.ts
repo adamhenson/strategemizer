@@ -32,6 +32,12 @@ const cli = meow({
     maxLossPercent: {
       type: 'number',
     },
+    shouldReturnAssetPaths: {
+      type: 'boolean',
+    },
+    shouldDelayForLogs: {
+      type: 'boolean',
+    },
     start: {
       type: 'string',
       isRequired: true,
@@ -66,6 +72,8 @@ const {
   isRandomlySorted,
   maxLoops,
   maxLossPercent,
+  shouldReturnAssetPaths,
+  shouldDelayForLogs,
   start,
   strategyConfigKey,
   strategyKey,
@@ -86,6 +94,8 @@ strategemizer({
   isRandomlySorted,
   maxLoops,
   maxLossPercent,
+  shouldReturnAssetPaths,
+  shouldDelayForLogs,
   start,
   strategy,
   strategyConfig,

@@ -492,7 +492,7 @@ interface CustomComparisonResult {
   result: ResultTable;
 }
 
-export interface StrategemizerRunResultBase {
+export interface StrategemizerRunResult {
   assets?: string;
   config: StrategyConfig;
   customComparisons: CustomComparisonResult[];
@@ -508,7 +508,7 @@ export interface StrategemizerRunResultBase {
   summary: ResultTable;
 }
 
-const handleEnd = async (): Promise<StrategemizerRunResultBase | null> => {
+const handleEnd = async (): Promise<StrategemizerRunResult | null> => {
   await handleResults();
 
   if (overallNetProfit === 0) {
@@ -821,6 +821,7 @@ const testStrategy = async ({
   outputDirectory: outputDirectoryParam,
   reportDate: reportDateParam,
   reportTime: reportTimeParam,
+  shouldDelayForLogs,
   shouldReturnAssetPaths: shouldReturnAssetPathsParam = true,
   start,
   strategy: strategyParam,
@@ -848,6 +849,7 @@ const testStrategy = async ({
   reportDate: string;
   reportTime: string;
   shouldReturnAssetPaths?: boolean;
+  shouldDelayForLogs?: boolean;
   start: string;
   strategy: Strategy;
   strategyConfig: StrategyConfig;
@@ -857,7 +859,7 @@ const testStrategy = async ({
   strategyVersion: string;
   symbols: string[];
   timeframe?: string;
-}): Promise<StrategemizerRunResultBase | null> => {
+}): Promise<StrategemizerRunResult | null> => {
   accountBudget = accountBudgetParam;
   accountBudgetMultiplier = accountBudgetMultiplierParam;
   accountBudgetPercentPerTrade = accountBudgetPercentPerTradeParam;
@@ -897,6 +899,7 @@ const testStrategy = async ({
     maxLossPercent,
     maxLoops,
     outputDirectory,
+    shouldDelayForLogs,
     shouldReturnAssetPaths,
     start,
     timeframe,
@@ -904,7 +907,9 @@ const testStrategy = async ({
   console.log('');
 
   // a 3 second delay to read the above in the output
-  await delay(3000);
+  if (shouldDelayForLogs) {
+    await delay(3000);
+  }
 
   alpacaClient = new AlpacaClient(
     alpacaBaseUrl,

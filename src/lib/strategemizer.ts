@@ -12,7 +12,7 @@ import createDirectory from './createDirectory';
 import createJsonFile from './createJsonFile';
 import getConfigVariations from './getConfigVariations';
 import getPackage from './getPackage';
-import testStrategy, { StrategemizerRunResultBase } from './testStrategy';
+import testStrategy, { StrategemizerRunResult } from './testStrategy';
 import { delay, numberStringWithCommas, sortByKey } from './utils';
 
 moment.tz.setDefault('America/New_York');
@@ -25,7 +25,7 @@ export interface StrategyResult {
 
 export type LooseNumber = number | undefined;
 
-export interface StrategemizerRunResult extends StrategemizerRunResultBase {
+export interface StrategemizerGroupUpdates {
   largestProfit: LooseNumber;
   largestLoss: LooseNumber;
   losses: StrategyResult[];
@@ -57,12 +57,17 @@ export interface StrategemizerGroupRunResult
   summaryFilePath?: string;
 }
 
+export interface HandleRunResultData {
+  result: StrategemizerRunResult | null;
+  groupUpdates: StrategemizerGroupUpdates;
+}
+
 export interface StrategemizerOptions {
   accountBudget?: number;
   accountBudgetMultiplier?: number;
   accountBudgetPercentPerTrade?: number;
   end: string;
-  handleResult?: (result: StrategemizerRunResult | null) => Promise<void>;
+  handleResult?: (result: HandleRunResultData) => Promise<void>;
   handleStart?: (result: StrategemizerGroupRunStartData) => Promise<void>;
   isFractional?: boolean;
   isRandomlySorted?: boolean;
@@ -70,6 +75,7 @@ export interface StrategemizerOptions {
   maxLoops?: number;
   maxLossPercent?: number;
   shouldReturnAssetPaths?: boolean;
+  shouldDelayForLogs?: boolean;
   start: string;
   strategy: Strategy;
   strategyConfig: StrategyConfig;
@@ -92,6 +98,7 @@ const strategemizer = async ({
   mainOutputDirectory = MAIN_OUTPUT_DIRECTORY,
   maxLoops,
   maxLossPercent,
+  shouldDelayForLogs,
   shouldReturnAssetPaths,
   start,
   strategy,
@@ -176,7 +183,10 @@ const strategemizer = async ({
       console.log('');
       console.log('config', strategyConfigVariation);
       console.log('');
-      await delay(3000);
+
+      if (shouldDelayForLogs) {
+        await delay(3000);
+      }
     }
 
     const variationString = !hasVariations
@@ -201,6 +211,7 @@ const strategemizer = async ({
       reportDate,
       reportTime,
       shouldReturnAssetPaths,
+      shouldDelayForLogs,
       start,
       strategy,
       strategyConfig: strategyConfigVariation,
@@ -218,75 +229,79 @@ const strategemizer = async ({
       console.log(`0️⃣  no results`);
       console.log('-----------------------------------');
       console.log('');
-      continue;
-    }
-    variationsWithResultsCount++;
-
-    const absoluteProfit = Math.abs(result.profit);
-    const formattedProfit = numberStringWithCommas(`${absoluteProfit}`);
-
-    console.log('');
-    console.log('-----------------------------------');
-
-    if (result.profit < 0) {
-      console.log(`❌ -$${formattedProfit} (total loss)`);
     } else {
-      console.log(`✅ $${formattedProfit} (total profit)`);
-    }
+      variationsWithResultsCount++;
 
-    console.log('-----------------------------------');
-    console.log('');
+      const absoluteProfit = Math.abs(result.profit);
+      const formattedProfit = numberStringWithCommas(`${absoluteProfit}`);
 
-    // a 3 second delay to read the above in the output
-    await delay(3000);
+      console.log('');
+      console.log('-----------------------------------');
 
-    const assetPath = path.resolve(`${outputDirectory}.zip`);
+      if (result.profit < 0) {
+        console.log(`❌ -$${formattedProfit} (total loss)`);
+      } else {
+        console.log(`✅ $${formattedProfit} (total profit)`);
+      }
 
-    const runResultItemBase = {
-      ...(!shouldReturnAssetPaths
-        ? {}
-        : {
-            assets: assetPath,
-          }),
-      profit: result.profit,
-      variation: strategyConfigVariation.variation,
-    };
+      console.log('-----------------------------------');
+      console.log('');
 
-    if (result.profit < 0) {
-      lossResults.push({
-        ...runResultItemBase,
-        result: `-$${formattedProfit}`,
+      // a 3 second delay to read the above in the output
+      if (shouldDelayForLogs) {
+        await delay(3000);
+      }
+
+      const assetPath = path.resolve(`${outputDirectory}.zip`);
+
+      const runResultItemBase = {
+        ...(!shouldReturnAssetPaths
+          ? {}
+          : {
+              assets: assetPath,
+            }),
+        profit: result.profit,
+        variation: strategyConfigVariation.variation,
+      };
+
+      if (result.profit < 0) {
+        lossResults.push({
+          ...runResultItemBase,
+          result: `-$${formattedProfit}`,
+        });
+      } else {
+        profitResults.push({
+          ...runResultItemBase,
+          result: `$${formattedProfit}`,
+        });
+      }
+
+      // sort to see best and worst first
+      lossResults = sortByKey({
+        array: lossResults,
+        direction: 'ascending',
+        key: 'profit',
       });
-    } else {
-      profitResults.push({
-        ...runResultItemBase,
-        result: `$${formattedProfit}`,
+      profitResults = sortByKey({
+        array: profitResults,
+        direction: 'descending',
+        key: 'profit',
       });
     }
-
-    // sort to see best and worst first
-    lossResults = sortByKey({
-      array: lossResults,
-      direction: 'ascending',
-      key: 'profit',
-    });
-    profitResults = sortByKey({
-      array: profitResults,
-      direction: 'descending',
-      key: 'profit',
-    });
 
     if (handleResult) {
       await handleResult({
-        ...result,
-        largestProfit: !profitResults.length
-          ? undefined
-          : profitResults[0].profit,
-        largestLoss: !lossResults.length ? undefined : lossResults[0].profit,
-        losses: lossResults,
-        profits: profitResults,
-        variationsRanCount,
-        variationsWithResultsCount,
+        result,
+        groupUpdates: {
+          largestProfit: !profitResults.length
+            ? undefined
+            : profitResults[0].profit,
+          largestLoss: !lossResults.length ? undefined : lossResults[0].profit,
+          losses: lossResults,
+          profits: profitResults,
+          variationsRanCount,
+          variationsWithResultsCount,
+        },
       });
     }
   }
