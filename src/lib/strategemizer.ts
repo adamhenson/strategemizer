@@ -12,7 +12,7 @@ import createDirectory from './createDirectory';
 import createJsonFile from './createJsonFile';
 import getConfigVariations from './getConfigVariations';
 import getPackage from './getPackage';
-import testStrategy, { StrategemizerRunResult } from './testStrategy';
+import testStrategy, { StrategemizerRunResultBase } from './testStrategy';
 import { delay, numberStringWithCommas, sortByKey } from './utils';
 
 moment.tz.setDefault('America/New_York');
@@ -20,7 +20,37 @@ moment.tz.setDefault('America/New_York');
 export interface StrategyResult {
   profit: number;
   variation: number | string | undefined;
-  assets: string;
+  assets?: string;
+}
+
+export type LooseNumber = number | undefined;
+
+export interface StrategemizerRunResult extends StrategemizerRunResultBase {
+  variationsRanCount: number;
+  variationsWithResultsCount: number;
+}
+
+export interface StrategemizerGroupRunStartData {
+  params: Partial<StrategemizerOptions>;
+  reportDate: string;
+  reportTime: string;
+  strategy: string;
+  strategyConfig: string;
+  strategyVersion: string;
+  variationCount: number;
+  variationsRanCount: number;
+  variationsWithResultsCount: number;
+}
+
+export interface StrategemizerGroupRunResult
+  extends StrategemizerGroupRunStartData {
+  largestProfit: LooseNumber;
+  largestLoss: LooseNumber;
+  timeElapsed: string;
+  timeAtCompletion: string;
+  losses: StrategyResult[];
+  profits: StrategyResult[];
+  summaryFilePath?: string;
 }
 
 export interface StrategemizerOptions {
@@ -29,11 +59,13 @@ export interface StrategemizerOptions {
   accountBudgetPercentPerTrade?: number;
   end: string;
   handleResult?: (result: StrategemizerRunResult | null) => Promise<void>;
+  handleStart?: (result: StrategemizerGroupRunStartData) => Promise<void>;
   isFractional?: boolean;
   isRandomlySorted?: boolean;
   mainOutputDirectory?: string;
   maxLoops?: number;
   maxLossPercent?: number;
+  shouldReturnAssetPaths?: boolean;
   start: string;
   strategy: Strategy;
   strategyConfig: StrategyConfig;
@@ -44,37 +76,19 @@ export interface StrategemizerOptions {
   timeframe?: string;
 }
 
-export type LooseNumber = number | undefined;
-
-export interface StrategemizerGroupRunResult {
-  largestProfit: LooseNumber;
-  largestLoss: LooseNumber;
-  timeElapsed: string;
-  timeAtCompletion: string;
-  params: Partial<StrategemizerOptions>;
-  losses: StrategyResult[];
-  profits: StrategyResult[];
-  reportDate: string;
-  reportTime: string;
-  strategy: string;
-  strategyConfig: string;
-  strategyVersion: string;
-  summaryFilePath: string;
-  variationCount: number;
-  variationsWithResultsCount: number;
-}
-
 const strategemizer = async ({
   accountBudget = 120000,
   accountBudgetMultiplier = 4,
   accountBudgetPercentPerTrade = 100,
   end,
   handleResult,
+  handleStart,
   isFractional,
   isRandomlySorted,
   mainOutputDirectory = MAIN_OUTPUT_DIRECTORY,
   maxLoops,
   maxLossPercent,
+  shouldReturnAssetPaths,
   start,
   strategy,
   strategyConfig,
@@ -110,8 +124,44 @@ const strategemizer = async ({
   const outputDirectoryBase = `${mainOutputDirectory}/${strategyKey}/v_${strategyVersion}/config_${strategyConfigKey}/${reportDate}/${reportTime}`;
 
   let variationsWithResultsCount = 0;
+  let variationsRanCount = 0;
+
+  const paramsBase = {
+    start,
+    end,
+    accountBudget,
+    accountBudgetMultiplier,
+    accountBudgetPercentPerTrade,
+    isFractional,
+    isRandomlySorted,
+    maxLoops,
+    maxLossPercent,
+    timeframe,
+  };
+
+  const params = {
+    ...paramsBase,
+    strategyConfigKey,
+    strategyKey,
+    strategyVersion,
+  };
+
+  if (handleStart) {
+    await handleStart({
+      params: paramsBase,
+      reportDate,
+      reportTime,
+      strategy: strategyKey,
+      strategyConfig: strategyConfigKey,
+      strategyVersion: strategyVersion,
+      variationCount: configVariationLength,
+      variationsRanCount: 0,
+      variationsWithResultsCount: 0,
+    });
+  }
 
   for (const strategyConfigVariation of strategyConfigVariations) {
+    variationsRanCount++;
     if (hasVariations) {
       console.log(
         '◉ running variation',
@@ -146,6 +196,7 @@ const strategemizer = async ({
       outputDirectory,
       reportDate,
       reportTime,
+      shouldReturnAssetPaths,
       start,
       strategy,
       strategyConfig: strategyConfigVariation,
@@ -168,7 +219,11 @@ const strategemizer = async ({
     variationsWithResultsCount++;
 
     if (handleResult) {
-      await handleResult(result);
+      await handleResult({
+        ...result,
+        variationsRanCount,
+        variationsWithResultsCount,
+      });
     }
 
     const absoluteProfit = Math.abs(result.profit);
@@ -276,31 +331,23 @@ const strategemizer = async ({
   createDirectory(outputDirectoryBase);
   const summaryFilePath = path.resolve(`${outputDirectoryBase}/summary.json`);
 
-  const params = {
-    start,
-    end,
-    accountBudget,
-    accountBudgetMultiplier,
-    accountBudgetPercentPerTrade,
-    isFractional,
-    isRandomlySorted,
-    maxLoops,
-    maxLossPercent,
-    strategyConfigKey,
-    strategyKey,
-    strategyVersion,
-    timeframe,
-  };
-
   const thinProfitResults = profitResults.map((result) => ({
     profit: result.profit,
     variation: result.variation,
-    assets: result.assets,
+    ...(!shouldReturnAssetPaths
+      ? {}
+      : {
+          assets: result.assets,
+        }),
   }));
   const thinLossResults = lossResults.map((result) => ({
     profit: result.profit,
     variation: result.variation,
-    assets: result.assets,
+    ...(!shouldReturnAssetPaths
+      ? {}
+      : {
+          assets: result.assets,
+        }),
   }));
 
   createJsonFile({
@@ -323,18 +370,7 @@ const strategemizer = async ({
     largestLoss: !lossResults.length ? undefined : lossResults[0].profit,
     timeElapsed,
     timeAtCompletion,
-    params: {
-      start,
-      end,
-      accountBudget,
-      accountBudgetMultiplier,
-      accountBudgetPercentPerTrade,
-      isFractional,
-      isRandomlySorted,
-      maxLoops,
-      maxLossPercent,
-      timeframe,
-    },
+    params: paramsBase,
     profits: thinProfitResults,
     losses: thinLossResults,
     reportDate,
@@ -342,8 +378,13 @@ const strategemizer = async ({
     strategy: strategyKey,
     strategyConfig: strategyConfigKey,
     strategyVersion: strategyVersion,
-    summaryFilePath,
+    ...(!shouldReturnAssetPaths
+      ? {}
+      : {
+          assets: summaryFilePath,
+        }),
     variationCount: configVariationLength,
+    variationsRanCount,
     variationsWithResultsCount,
   };
 };

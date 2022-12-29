@@ -47,6 +47,7 @@ let overallNetProfit = 0;
 let overallStart: string;
 let reportDate: string;
 let reportTime: string;
+let shouldReturnAssetPaths: boolean;
 let strategy: Strategy;
 let strategyConfig: StrategyConfig;
 let strategyConfigKey: string;
@@ -490,8 +491,9 @@ interface CustomComparisonResult {
   name: string;
   result: ResultTable;
 }
-export interface StrategemizerRunResult {
-  assets: string;
+
+export interface StrategemizerRunResultBase {
+  assets?: string;
   config: StrategyConfig;
   customComparisons: CustomComparisonResult[];
   hours: ResultTable;
@@ -506,7 +508,7 @@ export interface StrategemizerRunResult {
   summary: ResultTable;
 }
 
-const handleEnd = async (): Promise<StrategemizerRunResult | null> => {
+const handleEnd = async (): Promise<StrategemizerRunResultBase | null> => {
   await handleResults();
 
   if (overallNetProfit === 0) {
@@ -688,7 +690,11 @@ const handleEnd = async (): Promise<StrategemizerRunResult | null> => {
   console.log(`✔️ ${strategyConfirmedResults.length} strategy detections`);
 
   return {
-    assets: zippedAssets,
+    ...(!shouldReturnAssetPaths
+      ? {}
+      : {
+          assets: zippedAssets,
+        }),
     config: strategyConfig,
     customComparisons: customComparisonResults,
     hours: {
@@ -815,6 +821,7 @@ const testStrategy = async ({
   outputDirectory: outputDirectoryParam,
   reportDate: reportDateParam,
   reportTime: reportTimeParam,
+  shouldReturnAssetPaths: shouldReturnAssetPathsParam = true,
   start,
   strategy: strategyParam,
   strategyConfig: strategyConfigParam,
@@ -840,6 +847,7 @@ const testStrategy = async ({
   outputDirectory: string;
   reportDate: string;
   reportTime: string;
+  shouldReturnAssetPaths?: boolean;
   start: string;
   strategy: Strategy;
   strategyConfig: StrategyConfig;
@@ -849,7 +857,7 @@ const testStrategy = async ({
   strategyVersion: string;
   symbols: string[];
   timeframe?: string;
-}): Promise<StrategemizerRunResult | null> => {
+}): Promise<StrategemizerRunResultBase | null> => {
   accountBudget = accountBudgetParam;
   accountBudgetMultiplier = accountBudgetMultiplierParam;
   accountBudgetPercentPerTrade = accountBudgetPercentPerTradeParam;
@@ -861,6 +869,7 @@ const testStrategy = async ({
   overallStart = start;
   reportDate = reportDateParam;
   reportTime = reportTimeParam;
+  shouldReturnAssetPaths = shouldReturnAssetPathsParam;
   strategy = strategyParam;
   strategyConfig = strategyConfigParam;
   strategyConfigKey = strategyConfigKeyParam;
@@ -888,6 +897,7 @@ const testStrategy = async ({
     maxLossPercent,
     maxLoops,
     outputDirectory,
+    shouldReturnAssetPaths,
     start,
     timeframe,
   });
