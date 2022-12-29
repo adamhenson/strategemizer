@@ -26,6 +26,8 @@ export interface StrategyResult {
 export type LooseNumber = number | undefined;
 
 export interface StrategemizerRunResult extends StrategemizerRunResultBase {
+  largestProfit: LooseNumber;
+  largestLoss: LooseNumber;
   losses: StrategyResult[];
   profits: StrategyResult[];
   variationsRanCount: number;
@@ -277,6 +279,10 @@ const strategemizer = async ({
     if (handleResult) {
       await handleResult({
         ...result,
+        largestProfit: !profitResults.length
+          ? undefined
+          : profitResults[0].profit,
+        largestLoss: !lossResults.length ? undefined : lossResults[0].profit,
         losses: lossResults,
         profits: profitResults,
         variationsRanCount,
