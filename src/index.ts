@@ -3,6 +3,7 @@ import * as utils from './lib/utils';
 export { ResultTable, StrategemizerRunResult } from './lib/testStrategy';
 export {
   default,
+  HandleRunResultData,
   LooseNumber,
   StrategemizerOptions,
   StrategemizerGroupRunResult,
