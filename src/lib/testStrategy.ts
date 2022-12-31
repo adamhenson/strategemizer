@@ -9,6 +9,7 @@ import createCsv from './createCsv';
 import createDirectory from './createDirectory';
 import createJsonFile from './createJsonFile';
 import getTradingDay from './getTradingDay';
+import orderMatrixTableColumn from './orderMatrixTableColumn';
 import simulateTrade from './simulateTrade';
 import {
   getBarsWithRetry,
@@ -559,60 +560,67 @@ const handleEnd = async (): Promise<StrategemizerRunResult | null> => {
     'exited',
   ];
   const reportHeaderRow = [...reportHeaderRowList, 'link'];
-  const reportDataRows = strategyConfirmedResults.map((data) => {
-    const points = data.points.reduce(
-      (accumulator: string, current: string) =>
-        `${accumulator}&points[]=${current}`,
-      '',
-    );
-    const flatLines = (data.flatLines || []).reduce(
-      (accumulator: string, current: string) =>
-        `${accumulator}&flatLines[]=${current}`,
-      '',
-    );
-    const minChartStart = moment(data.t)
-      .set({
-        hour: 9,
-        minute: 30,
-        milliseconds: 0,
-        seconds: 0,
-      })
-      .toISOString();
-    const minChartEnd = moment(data.t)
-      .set({
-        hour: 16,
-        minute: 0,
-        milliseconds: 0,
-        seconds: 0,
-      })
-      .toISOString();
 
-    return [
-      data.date,
-      data.symbol,
-      data.price,
-      data.exitPrice,
-      data.profit || -data.loss,
-      data.profitPercent || -data.lossPercent,
-      data.profitPrice,
-      data.targetedProfitPercent,
-      data.stopPrice,
-      data.targetedLossPercent,
-      data.qty,
-      data.spent,
-      data.rvol,
-      data.rsi,
-      data.vwap,
-      data.ema9,
-      data.ema20,
-      data.orderTime,
-      data.detectionTime,
-      data.entryTime,
-      data.exitTime,
-      `https://www.laservision.app/stocks/${data.symbol}?start=${minChartStart}` +
-        `&end=${minChartEnd}${points}${flatLines}&timeframe=1Min`,
-    ];
-  });
+  // ordered by 'profit' in descending order
+  const indexOfProfit = reportHeaderRowList.indexOf('profit');
+  const reportDataRows = orderMatrixTableColumn(
+    strategyConfirmedResults.map((data) => {
+      const points = data.points.reduce(
+        (accumulator: string, current: string) =>
+          `${accumulator}&points[]=${current}`,
+        '',
+      );
+      const flatLines = (data.flatLines || []).reduce(
+        (accumulator: string, current: string) =>
+          `${accumulator}&flatLines[]=${current}`,
+        '',
+      );
+      const minChartStart = moment(data.t)
+        .set({
+          hour: 9,
+          minute: 30,
+          milliseconds: 0,
+          seconds: 0,
+        })
+        .toISOString();
+      const minChartEnd = moment(data.t)
+        .set({
+          hour: 16,
+          minute: 0,
+          milliseconds: 0,
+          seconds: 0,
+        })
+        .toISOString();
+
+      return [
+        data.date,
+        data.symbol,
+        data.price,
+        data.exitPrice,
+        data.profit || -data.loss,
+        data.profitPercent || -data.lossPercent,
+        data.profitPrice,
+        data.targetedProfitPercent,
+        data.stopPrice,
+        data.targetedLossPercent,
+        data.qty,
+        data.spent,
+        data.rvol,
+        data.rsi,
+        data.vwap,
+        data.ema9,
+        data.ema20,
+        data.orderTime,
+        data.detectionTime,
+        data.entryTime,
+        data.exitTime,
+        `https://www.laservision.app/stocks/${data.symbol}?start=${minChartStart}` +
+          `&end=${minChartEnd}${points}${flatLines}&timeframe=1Min`,
+      ];
+    }),
+    indexOfProfit,
+    'desc',
+  );
 
   const reportFilePath = `${outputDirectory}/report.csv`;
   createCsv({
@@ -624,12 +632,20 @@ const handleEnd = async (): Promise<StrategemizerRunResult | null> => {
 
   const summaryHeaderRow = [
     'profit',
-    'total profit trades',
-    'total loss trades',
+    'profit trades',
+    'loss trades',
+    'highest trade profit',
+    'lowest trade profit',
   ];
   const overallFormattedProfit = formatCurrencyNumber(overallNetProfit);
   const summaryDataRows = [
-    [overallFormattedProfit, totalProfitTrades, totalLossTrades],
+    [
+      overallFormattedProfit,
+      totalProfitTrades,
+      totalLossTrades,
+      reportDataRows[0][indexOfProfit],
+      reportDataRows[reportDataRows.length - 1][indexOfProfit],
+    ],
   ];
 
   const summaryFilePath = `${outputDirectory}/summary.csv`;
