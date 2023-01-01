@@ -115,7 +115,6 @@ const strategemizer = async ({
   const startTime = moment();
   const strategyConfigVariations = getConfigVariations(strategyConfig);
   const configVariationLength = strategyConfigVariations.length;
-  const hasVariations = configVariationLength > 1;
   let lossResults = [];
   let profitResults = [];
 
@@ -127,11 +126,8 @@ const strategemizer = async ({
   console.log(`${packageContentParsed.name}@${packageContentParsed.version}`);
   console.log('');
   console.log('-----------------------------------');
-
-  if (hasVariations) {
-    console.log('');
-    console.log('◉ running with', configVariationLength, 'config variations');
-  }
+  console.log('');
+  console.log('◉ running with', configVariationLength, 'config variations');
 
   const outputDirectoryBase = `${mainOutputDirectory}/${strategyKey}/v_${strategyVersion}/config_${strategyConfigKey}/${reportDate}/${reportTime}`;
 
@@ -174,25 +170,21 @@ const strategemizer = async ({
 
   for (const strategyConfigVariation of strategyConfigVariations) {
     variationsRanCount++;
-    if (hasVariations) {
-      console.log(
-        '◉ running variation',
-        strategyConfigVariation.variation,
-        'of',
-        configVariationLength,
-      );
-      console.log('');
-      console.log('config', strategyConfigVariation);
-      console.log('');
+    console.log(
+      '◉ running variation',
+      strategyConfigVariation.variation,
+      'of',
+      configVariationLength,
+    );
+    console.log('');
+    console.log('config', strategyConfigVariation);
+    console.log('');
 
-      if (shouldDelayForLogs) {
-        await delay(3000);
-      }
+    if (shouldDelayForLogs) {
+      await delay(3000);
     }
 
-    const variationString = !hasVariations
-      ? ''
-      : `/variation_${strategyConfigVariation.variation}`;
+    const variationString = `/variation_${strategyConfigVariation.variation}`;
     const outputDirectory = `${outputDirectoryBase}${variationString}`;
 
     const result = await testStrategy({
@@ -314,32 +306,30 @@ const strategemizer = async ({
 
   console.log('generating overall report...');
 
-  if (hasVariations) {
-    if (profitResults.length) {
-      console.log('');
-      console.log('-----------------------------------');
-      console.log(`✅ config variations with profit`);
-      console.log('-----------------------------------');
-      console.log('');
-      for (const profitResult of profitResults) {
-        console.log(
-          `  • variation ${profitResult.variation}: ${profitResult.result}`,
-        );
-      }
+  if (profitResults.length) {
+    console.log('');
+    console.log('-----------------------------------');
+    console.log(`✅ config variations with profit`);
+    console.log('-----------------------------------');
+    console.log('');
+    for (const profitResult of profitResults) {
+      console.log(
+        `  • variation ${profitResult.variation}: ${profitResult.result}`,
+      );
     }
-    if (lossResults.length) {
-      console.log('');
-      console.log('-----------------------------------');
-      console.log(`❌ config variations with loss`);
-      console.log('-----------------------------------');
-      console.log('');
-      for (const lossResult of lossResults) {
-        console.log(
-          `  • variation ${lossResult.variation}: ${lossResult.result}`,
-        );
-      }
-      console.log('');
+  }
+  if (lossResults.length) {
+    console.log('');
+    console.log('-----------------------------------');
+    console.log(`❌ config variations with loss`);
+    console.log('-----------------------------------');
+    console.log('');
+    for (const lossResult of lossResults) {
+      console.log(
+        `  • variation ${lossResult.variation}: ${lossResult.result}`,
+      );
     }
+    console.log('');
   }
 
   const endTime = moment();
