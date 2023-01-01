@@ -905,13 +905,14 @@ const testStrategy = async ({
   totalProfitTrades = 0;
   tradeBudgets = [];
 
-  console.log('params', {
+  console.log('options', {
     accountBudget,
     accountBudgetMultiplier,
     accountBudgetPercentPerTrade,
     end,
     isFractional,
     isRandomlySorted,
+    LOG_LEVEL,
     maxLossPercent,
     maxLoops,
     outputDirectory,
