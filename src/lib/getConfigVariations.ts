@@ -24,7 +24,12 @@ const getConfigVariations = (config: StrategyConfig): StrategyConfig[] => {
   );
 
   if (variationKeys.length === 0) {
-    return [config];
+    return [
+      {
+        ...config,
+        variation: 1,
+      },
+    ];
   }
 
   const variations: Record<string, NumberOrBoolean[]> = {};

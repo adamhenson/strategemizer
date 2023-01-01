@@ -1,13 +1,13 @@
 import getConfigVariations from './getConfigVariations';
 
 describe('getConfigVariations', () => {
-  it('should return no variations', () => {
+  it('should return 1 variation', () => {
     const config = {
       ipsum: 1,
       lorem: 2,
     };
     const result = getConfigVariations(config);
-    expect(result).toStrictEqual([{ ipsum: 1, lorem: 2 }]);
+    expect(result).toStrictEqual([{ ipsum: 1, lorem: 2, variation: 1 }]);
   });
 
   it('should return all simple variations', () => {
