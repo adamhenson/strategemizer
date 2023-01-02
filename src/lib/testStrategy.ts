@@ -31,7 +31,7 @@ interface CustomComparison {
 }
 type CustomComparisonGroup = Record<string, CustomComparison>;
 type CustomComparisonGroups = Record<string, CustomComparisonGroup>;
-export type HandleStrategyError = (error: any) => Promise<void>;
+export type HandleStrategyError = (error: any) => void;
 export type HandleSymbolIndex = (index: number) => Promise<void>;
 
 let customComparisons: CustomComparisonGroups = {};
@@ -487,7 +487,7 @@ const runStrategy = async ({ symbol, start, end }: RunStrategyInput) => {
     }
   } catch (error) {
     if (handleStrategyError) {
-      await handleStrategyError(error);
+      handleStrategyError(error);
     }
   }
 };
