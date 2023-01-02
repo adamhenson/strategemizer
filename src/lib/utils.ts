@@ -19,12 +19,15 @@ export const getTechnicalIndicatorsInput = (
   bars: Bar[],
 ): TechnicalIndicatorsInput =>
   bars.reduce(
-    (accumulator: TechnicalIndicatorsInput, current) => ({
-      open: [...accumulator.open, current.o],
-      high: [...accumulator.high, current.h],
-      close: [...accumulator.close, current.c],
-      low: [...accumulator.low, current.l],
-    }),
+    (accumulator: TechnicalIndicatorsInput, current) =>
+      !current
+        ? accumulator
+        : {
+            open: [...accumulator.open, current.o],
+            high: [...accumulator.high, current.h],
+            close: [...accumulator.close, current.c],
+            low: [...accumulator.low, current.l],
+          },
     {
       open: [],
       high: [],
