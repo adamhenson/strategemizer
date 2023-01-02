@@ -11,6 +11,7 @@ export {
   default,
   HandleRunResultData,
   HandleSymbolIndex,
+  HandleSymbolIndexParams,
   LooseNumber,
   StrategemizerOptions,
   StrategemizerGroupRunResult,
