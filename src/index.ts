@@ -2,7 +2,6 @@ import * as utils from './lib/utils';
 
 export {
   HandleStrategyError,
-  HandleSymbolIndex,
   ResultTable,
   StrategemizerRunResult,
 } from './lib/testStrategy';
@@ -11,6 +10,7 @@ export { default as ErrorHandler } from './lib/ErrorHandler';
 export {
   default,
   HandleRunResultData,
+  HandleSymbolIndex,
   LooseNumber,
   StrategemizerOptions,
   StrategemizerGroupRunResult,

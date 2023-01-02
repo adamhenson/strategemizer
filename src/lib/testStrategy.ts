@@ -32,7 +32,7 @@ interface CustomComparison {
 type CustomComparisonGroup = Record<string, CustomComparison>;
 type CustomComparisonGroups = Record<string, CustomComparisonGroup>;
 export type HandleStrategyError = (error: any) => void;
-export type HandleSymbolIndex = (index: number) => Promise<void>;
+export type HandleTestStrategySymbolIndex = (index: number) => Promise<void>;
 
 let customComparisons: CustomComparisonGroups = {};
 let hours: CustomComparisonGroup = {};
@@ -869,7 +869,7 @@ const testStrategy = async ({
   alpacaSecretKey: string;
   end: string;
   handleStrategyError?: HandleStrategyError;
-  handleSymbolIndex?: HandleSymbolIndex;
+  handleSymbolIndex?: HandleTestStrategySymbolIndex;
   isFractional?: boolean;
   isRandomlySorted?: boolean;
   maxLoops?: number;

@@ -14,7 +14,7 @@ import getConfigVariations from './getConfigVariations';
 import getPackage from './getPackage';
 import testStrategy, {
   HandleStrategyError,
-  HandleSymbolIndex,
+  HandleTestStrategySymbolIndex,
   StrategemizerRunResult,
 } from './testStrategy';
 import { delay, numberStringWithCommas, sortByKey } from './utils';
@@ -28,6 +28,14 @@ export interface StrategyResult {
 }
 
 export type LooseNumber = number | undefined;
+
+export interface StrategemizerGroupIdentifierParams {
+  reportDate: string;
+  reportTime: string;
+  strategy: string;
+  strategyConfig: string;
+  strategyVersion: string;
+}
 
 export interface StrategemizerGroupBase {
   reportDate: string;
@@ -68,6 +76,15 @@ export interface HandleRunResultData {
   result: StrategemizerRunResult | null;
   groupUpdates: StrategemizerGroupUpdates;
 }
+
+export interface HandleSymbolIndexParams
+  extends StrategemizerGroupIdentifierParams {
+  symbolIndex: number;
+}
+
+export type HandleSymbolIndex = (
+  data: HandleSymbolIndexParams,
+) => Promise<void>;
 
 export interface StrategemizerOptions {
   accountBudget?: number;
@@ -198,6 +215,20 @@ const strategemizer = async ({
     const variationString = `/variation_${strategyConfigVariation.variation}`;
     const outputDirectory = `${outputDirectoryBase}${variationString}`;
 
+    let handleSymbolIndexInternal: HandleTestStrategySymbolIndex | undefined;
+    if (handleSymbolIndex) {
+      handleSymbolIndexInternal = async (index) => {
+        return handleSymbolIndex({
+          reportDate,
+          reportTime,
+          strategy: strategyKey,
+          strategyConfig: strategyConfigKey,
+          strategyVersion: strategyVersion,
+          symbolIndex: index,
+        });
+      };
+    }
+
     const result = await testStrategy({
       accountBudget,
       accountBudgetMultiplier,
@@ -208,7 +239,7 @@ const strategemizer = async ({
       alpacaSecretKey: ALPACA_SECRET_KEY,
       end,
       handleStrategyError,
-      handleSymbolIndex,
+      handleSymbolIndex: handleSymbolIndexInternal,
       isFractional,
       isRandomlySorted,
       maxLoops,
