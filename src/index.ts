@@ -1,6 +1,11 @@
 import * as utils from './lib/utils';
 
-export { ResultTable, StrategemizerRunResult } from './lib/testStrategy';
+export {
+  HandleStrategyError,
+  HandleSymbolIndex,
+  ResultTable,
+  StrategemizerRunResult,
+} from './lib/testStrategy';
 export { default as emailByTemplate } from './lib/emailByTemplate';
 export { default as ErrorHandler } from './lib/ErrorHandler';
 export {

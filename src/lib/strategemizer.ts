@@ -12,7 +12,11 @@ import createDirectory from './createDirectory';
 import createJsonFile from './createJsonFile';
 import getConfigVariations from './getConfigVariations';
 import getPackage from './getPackage';
-import testStrategy, { StrategemizerRunResult } from './testStrategy';
+import testStrategy, {
+  HandleStrategyError,
+  HandleSymbolIndex,
+  StrategemizerRunResult,
+} from './testStrategy';
 import { delay, numberStringWithCommas, sortByKey } from './utils';
 
 moment.tz.setDefault('America/New_York');
@@ -44,18 +48,20 @@ export interface StrategemizerGroupUpdates extends StrategemizerGroupBase {
 
 export interface StrategemizerGroupRunStartData extends StrategemizerGroupBase {
   params: Partial<StrategemizerOptions>;
+  symbolCount: number;
   variationCount: number;
 }
 
-export interface StrategemizerGroupRunResult
-  extends StrategemizerGroupRunStartData {
+export interface StrategemizerGroupRunResult extends StrategemizerGroupBase {
   largestProfit: LooseNumber;
   largestLoss: LooseNumber;
+  params: Partial<StrategemizerOptions>;
   timeElapsed: string;
   timeAtCompletion: string;
   losses: StrategyResult[];
   profits: StrategyResult[];
   summaryFilePath?: string;
+  variationCount: number;
 }
 
 export interface HandleRunResultData {
@@ -70,6 +76,8 @@ export interface StrategemizerOptions {
   end: string;
   handleResult?: (result: HandleRunResultData) => Promise<void>;
   handleStart?: (result: StrategemizerGroupRunStartData) => Promise<void>;
+  handleStrategyError?: HandleStrategyError;
+  handleSymbolIndex?: HandleSymbolIndex;
   isFractional?: boolean;
   isRandomlySorted?: boolean;
   mainOutputDirectory?: string;
@@ -94,6 +102,8 @@ const strategemizer = async ({
   end,
   handleResult,
   handleStart,
+  handleStrategyError,
+  handleSymbolIndex,
   isFractional,
   isRandomlySorted,
   mainOutputDirectory = MAIN_OUTPUT_DIRECTORY,
@@ -162,6 +172,7 @@ const strategemizer = async ({
       strategy: strategyKey,
       strategyConfig: strategyConfigKey,
       strategyVersion: strategyVersion,
+      symbolCount: maxLoops || symbols.length,
       variationCount: configVariationLength,
       variationsRanCount: 0,
       variationsWithResultsCount: 0,
@@ -196,6 +207,8 @@ const strategemizer = async ({
       alpacaApiKeyId: ALPACA_API_KEY_ID,
       alpacaSecretKey: ALPACA_SECRET_KEY,
       end,
+      handleStrategyError,
+      handleSymbolIndex,
       isFractional,
       isRandomlySorted,
       maxLoops,

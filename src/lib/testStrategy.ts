@@ -31,6 +31,8 @@ interface CustomComparison {
 }
 type CustomComparisonGroup = Record<string, CustomComparison>;
 type CustomComparisonGroups = Record<string, CustomComparisonGroup>;
+export type HandleStrategyError = (error: any) => Promise<void>;
+export type HandleSymbolIndex = (index: number) => Promise<void>;
 
 let customComparisons: CustomComparisonGroups = {};
 let hours: CustomComparisonGroup = {};
@@ -42,6 +44,7 @@ let alpacaClient: AlpacaClient;
 let isFractional: boolean | undefined;
 let maxLoops: number;
 let maxLossPercent: number | undefined;
+let handleStrategyError: HandleStrategyError | undefined;
 let outputDirectory: string;
 let overallEnd: string;
 let overallNetProfit = 0;
@@ -382,103 +385,109 @@ interface RunStrategyInput extends StartAndEnd {
 }
 
 const runStrategy = async ({ symbol, start, end }: RunStrategyInput) => {
-  if (LOG_LEVEL.includes('verbose')) {
-    console.log('unresolved total', strategyResults.length);
-  }
+  try {
+    if (LOG_LEVEL.includes('verbose')) {
+      console.log('unresolved total', strategyResults.length);
+    }
 
-  const bars1Min = await getBarsWithRetry({
-    alpacaClient,
-    end,
-    symbol,
-    start,
-    timeframe: '1Min',
-  });
-
-  if (!bars1Min) {
-    return;
-  }
-
-  const bars5Min = await getBarsWithRetry({
-    alpacaClient,
-    end,
-    symbol,
-    start,
-    timeframe: '5Min',
-  });
-
-  if (!bars5Min) {
-    return;
-  }
-
-  let previousDay = 1;
-  const getPreviousDayBars = async (): Promise<Bar[] | undefined> => {
-    const previousDayBars = await getBarsWithRetry({
+    const bars1Min = await getBarsWithRetry({
       alpacaClient,
-      limit: 10000,
-      timeframe: '1Min',
-      start: moment(start).subtract(previousDay, 'day').toISOString(),
-      end: moment(end).subtract(previousDay, 'day').toISOString(),
+      end,
       symbol,
+      start,
+      timeframe: '1Min',
     });
 
-    const isResultValid = previousDayBars;
-
-    previousDay++;
-    if (isResultValid) {
-      return previousDayBars;
-    } else if (previousDay > 5) {
+    if (!bars1Min) {
       return;
+    }
+
+    const bars5Min = await getBarsWithRetry({
+      alpacaClient,
+      end,
+      symbol,
+      start,
+      timeframe: '5Min',
+    });
+
+    if (!bars5Min) {
+      return;
+    }
+
+    let previousDay = 1;
+    const getPreviousDayBars = async (): Promise<Bar[] | undefined> => {
+      const previousDayBars = await getBarsWithRetry({
+        alpacaClient,
+        limit: 10000,
+        timeframe: '1Min',
+        start: moment(start).subtract(previousDay, 'day').toISOString(),
+        end: moment(end).subtract(previousDay, 'day').toISOString(),
+        symbol,
+      });
+
+      const isResultValid = previousDayBars;
+
+      previousDay++;
+      if (isResultValid) {
+        return previousDayBars;
+      } else if (previousDay > 5) {
+        return;
+      } else {
+        return getPreviousDayBars();
+      }
+    };
+
+    const bars1MinPreviousDay = await getPreviousDayBars();
+
+    if (!bars1MinPreviousDay) {
+      return;
+    }
+
+    // test every bar as if it was the most recent
+    if (timeframe === '5Min') {
+      for (const [index] of bars5Min.entries()) {
+        const sliced5MinBars = bars5Min.slice(0, index + 1);
+        if (sliced5MinBars.length) {
+          const result = await strategy({
+            bars: sliced5MinBars,
+            config: strategyConfig,
+            symbol,
+          });
+
+          if (result) {
+            strategyResults.push({
+              ...result,
+              strategyId: uuid(),
+              symbol,
+              tTime: moment(result.t).valueOf(),
+            });
+          }
+        }
+      }
     } else {
-      return getPreviousDayBars();
-    }
-  };
-
-  const bars1MinPreviousDay = await getPreviousDayBars();
-
-  if (!bars1MinPreviousDay) {
-    return;
-  }
-
-  // test every bar as if it was the most recent
-  if (timeframe === '5Min') {
-    for (const [index] of bars5Min.entries()) {
-      const sliced5MinBars = bars5Min.slice(0, index + 1);
-      if (sliced5MinBars.length) {
-        const result = await strategy({
-          bars: sliced5MinBars,
-          config: strategyConfig,
-          symbol,
-        });
-
-        if (result) {
-          strategyResults.push({
-            ...result,
-            strategyId: uuid(),
+      for (const [index] of bars1Min.entries()) {
+        const sliced1MinBars = bars1Min.slice(0, index + 1);
+        if (sliced1MinBars.length) {
+          const result = await strategy({
+            bars: sliced1MinBars,
+            config: strategyConfig,
             symbol,
-            tTime: moment(result.t).valueOf(),
           });
+
+          if (result) {
+            strategyResults.push({
+              ...result,
+              strategyId: uuid(),
+              symbol,
+              tTime: moment(result.t).valueOf(),
+            });
+          }
         }
       }
     }
-  } else {
-    for (const [index] of bars1Min.entries()) {
-      const sliced1MinBars = bars1Min.slice(0, index + 1);
-      if (sliced1MinBars.length) {
-        const result = await strategy({
-          bars: sliced1MinBars,
-          config: strategyConfig,
-          symbol,
-        });
-
-        if (result) {
-          strategyResults.push({
-            ...result,
-            strategyId: uuid(),
-            symbol,
-            tTime: moment(result.t).valueOf(),
-          });
-        }
-      }
+  } catch (error) {
+    if (handleStrategyError) {
+      await handleStrategyError(error);
     }
   }
 };
@@ -830,6 +839,8 @@ const testStrategy = async ({
   alpacaApiKeyId,
   alpacaSecretKey,
   end,
+  handleStrategyError: handleStrategyErrorParam,
+  handleSymbolIndex,
   isFractional: isFractionalParam,
   isRandomlySorted,
   maxLoops: maxLoopsParam = Infinity,
@@ -857,6 +868,8 @@ const testStrategy = async ({
   alpacaApiKeyId: string;
   alpacaSecretKey: string;
   end: string;
+  handleStrategyError?: HandleStrategyError;
+  handleSymbolIndex?: HandleSymbolIndex;
   isFractional?: boolean;
   isRandomlySorted?: boolean;
   maxLoops?: number;
@@ -879,6 +892,7 @@ const testStrategy = async ({
   accountBudget = accountBudgetParam;
   accountBudgetMultiplier = accountBudgetMultiplierParam;
   accountBudgetPercentPerTrade = accountBudgetPercentPerTradeParam;
+  handleStrategyError = handleStrategyErrorParam;
   isFractional = isFractionalParam;
   maxLoops = maxLoopsParam;
   maxLossPercent = maxLossPercentParam;
@@ -945,11 +959,12 @@ const testStrategy = async ({
   console.log('');
 
   while (index < symbolList.length && index < maxLoops) {
+    if (handleSymbolIndex) {
+      await handleSymbolIndex(index);
+    }
     const symbol = symbolList[index];
 
-    if (LOG_LEVEL.includes('verbose')) {
-      console.log(index + 1, symbol);
-    }
+    console.log(index + 1, symbol);
 
     const result: any = await handleSymbol(symbol);
 
