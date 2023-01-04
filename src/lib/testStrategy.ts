@@ -23,7 +23,7 @@ moment.tz.setDefault('America/New_York');
 
 const { LOG_LEVEL = 'error' } = process.env;
 
-const strategyConfirmedResults: any[] = [];
+let strategyConfirmedResults: any[] = [];
 
 interface CustomComparison {
   profit: number;
@@ -111,7 +111,7 @@ const handleResolvedResult = async ({
     ...tradeDataPoints,
   ];
 
-  const netProfit = profit || -loss;
+  const netProfit = profit > 0 ? profit : -loss;
   overallNetProfit += netProfit;
 
   if (loss) {
@@ -918,6 +918,7 @@ const testStrategy = async ({
   totalLossTrades = 0;
   totalProfitTrades = 0;
   tradeBudgets = [];
+  strategyConfirmedResults = [];
 
   console.log('options', {
     accountBudget,
