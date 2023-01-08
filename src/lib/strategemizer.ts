@@ -25,6 +25,7 @@ export interface StrategyResult {
   profit: number;
   variation: number | string | undefined;
   assets?: string;
+  result?: string;
 }
 
 export type LooseNumber = number | undefined;
@@ -142,8 +143,8 @@ const strategemizer = async ({
   const startTime = moment();
   const strategyConfigVariations = getConfigVariations(strategyConfig);
   const configVariationLength = strategyConfigVariations.length;
-  let lossResults = [];
-  let profitResults = [];
+  let lossResults: StrategyResult[] = [];
+  let profitResults: StrategyResult[] = [];
 
   const packageContent = await getPackage();
   const packageContentParsed = JSON.parse(packageContent);
@@ -212,139 +213,161 @@ const strategemizer = async ({
       await delay(3000);
     }
 
-    const variationString = `/variation_${strategyConfigVariation.variation}`;
-    const outputDirectory = `${outputDirectoryBase}${variationString}`;
+    const runVariation = async (
+      currentVariationConfig: StrategyConfig,
+      currentStart: string,
+    ): Promise<number> => {
+      const variationString = `/variation_${currentVariationConfig.variation}`;
+      const outputDirectory = `${outputDirectoryBase}${variationString}`;
 
-    let handleSymbolIndexInternal: HandleTestStrategySymbolIndex | undefined;
-    if (handleSymbolIndex) {
-      handleSymbolIndexInternal = async (index) => {
-        return handleSymbolIndex({
-          reportDate,
-          reportTime,
-          strategy: strategyKey,
-          strategyConfig: strategyConfigKey,
-          strategyVersion: strategyVersion,
-          symbolIndex: index,
-        });
-      };
-    }
-
-    const result = await testStrategy({
-      accountBudget,
-      accountBudgetMultiplier,
-      accountBudgetPercentPerTrade,
-      alpacaBaseUrl: ALPACA_BASE_URL,
-      alpacaBaseUrlData: ALPACA_BASE_URL_DATA,
-      alpacaApiKeyId: ALPACA_API_KEY_ID,
-      alpacaSecretKey: ALPACA_SECRET_KEY,
-      end,
-      handleStrategyError,
-      handleSymbolIndex: handleSymbolIndexInternal,
-      isFractional,
-      isRandomlySorted,
-      maxLoops,
-      maxLossPercent,
-      outputDirectory,
-      reportDate,
-      reportTime,
-      shouldReturnAssetPaths,
-      shouldDelayForLogs,
-      start,
-      strategy,
-      strategyConfig: strategyConfigVariation,
-      strategyConfigKey,
-      strategyConfigVariationKey: strategyConfigVariation.variation,
-      strategyVersion,
-      strategyKey,
-      symbols,
-      timeframe,
-    });
-
-    if (!result) {
-      console.log('');
-      console.log('-----------------------------------');
-      console.log(`0️⃣  no results`);
-      console.log('-----------------------------------');
-      console.log('');
-    } else {
-      variationsWithResultsCount++;
-
-      const absoluteProfit = Math.abs(result.profit);
-      const formattedProfit = numberStringWithCommas(`${absoluteProfit}`);
-
-      console.log('');
-      console.log('-----------------------------------');
-
-      if (result.profit < 0) {
-        console.log(`❌ -$${formattedProfit} (total loss)`);
-      } else {
-        console.log(`✅ $${formattedProfit} (total profit)`);
+      let handleSymbolIndexInternal: HandleTestStrategySymbolIndex | undefined;
+      if (handleSymbolIndex) {
+        handleSymbolIndexInternal = async (index) => {
+          return handleSymbolIndex({
+            reportDate,
+            reportTime,
+            strategy: strategyKey,
+            strategyConfig: strategyConfigKey,
+            strategyVersion: strategyVersion,
+            symbolIndex: index,
+          });
+        };
       }
 
-      console.log('-----------------------------------');
-      console.log('');
-
-      // a 3 second delay to read the above in the output
-      if (shouldDelayForLogs) {
-        await delay(3000);
-      }
-
-      const assetPath = path.resolve(`${outputDirectory}.zip`);
-
-      const runResultItemBase = {
-        ...(!shouldReturnAssetPaths
-          ? {}
-          : {
-              assets: assetPath,
-            }),
-        profit: result.profit,
-        variation: strategyConfigVariation.variation,
-      };
-
-      if (result.profit < 0) {
-        lossResults.push({
-          ...runResultItemBase,
-          result: `-$${formattedProfit}`,
-        });
-      } else {
-        profitResults.push({
-          ...runResultItemBase,
-          result: `$${formattedProfit}`,
-        });
-      }
-
-      // sort to see best and worst first
-      lossResults = sortByKey({
-        array: lossResults,
-        direction: 'ascending',
-        key: 'profit',
+      const result = await testStrategy({
+        accountBudget,
+        accountBudgetMultiplier,
+        accountBudgetPercentPerTrade,
+        alpacaBaseUrl: ALPACA_BASE_URL,
+        alpacaBaseUrlData: ALPACA_BASE_URL_DATA,
+        alpacaApiKeyId: ALPACA_API_KEY_ID,
+        alpacaSecretKey: ALPACA_SECRET_KEY,
+        end,
+        handleStrategyError,
+        handleSymbolIndex: handleSymbolIndexInternal,
+        isFractional,
+        isRandomlySorted,
+        maxLoops,
+        maxLossPercent,
+        outputDirectory,
+        reportDate,
+        reportTime,
+        shouldReturnAssetPaths,
+        shouldDelayForLogs,
+        start: currentStart,
+        strategy,
+        strategyConfig: currentVariationConfig,
+        strategyConfigKey,
+        strategyConfigVariationKey: currentVariationConfig.variation,
+        strategyVersion,
+        strategyKey,
+        symbols,
+        timeframe,
       });
-      profitResults = sortByKey({
-        array: profitResults,
-        direction: 'descending',
-        key: 'profit',
-      });
-    }
 
-    if (handleResult) {
-      await handleResult({
-        result,
-        groupUpdates: {
-          largestProfit: !profitResults.length
-            ? undefined
-            : profitResults[0].profit,
-          largestLoss: !lossResults.length ? undefined : lossResults[0].profit,
-          losses: lossResults,
-          reportDate,
-          reportTime,
-          strategy: strategyKey,
-          strategyConfig: strategyConfigKey,
-          strategyVersion: strategyVersion,
-          profits: profitResults,
-          variationsRanCount,
-          variationsWithResultsCount,
+      if (!result) {
+        console.log('');
+        console.log('-----------------------------------');
+        console.log(`0️⃣  no results`);
+        console.log('-----------------------------------');
+        console.log('');
+      } else {
+        variationsWithResultsCount++;
+
+        const absoluteProfit = Math.abs(result.profit);
+        const formattedProfit = numberStringWithCommas(`${absoluteProfit}`);
+
+        console.log('');
+        console.log('-----------------------------------');
+
+        if (result.profit < 0) {
+          console.log(`❌ -$${formattedProfit} (total loss)`);
+        } else {
+          console.log(`✅ $${formattedProfit} (total profit)`);
+        }
+
+        console.log('-----------------------------------');
+        console.log('');
+
+        // a 3 second delay to read the above in the output
+        if (shouldDelayForLogs) {
+          await delay(3000);
+        }
+
+        const assetPath = path.resolve(`${outputDirectory}.zip`);
+
+        const runResultItemBase = {
+          ...(!shouldReturnAssetPaths
+            ? {}
+            : {
+                assets: assetPath,
+              }),
+          profit: result.profit,
+          variation: currentVariationConfig.variation,
+        };
+
+        if (result.profit < 0) {
+          lossResults.push({
+            ...runResultItemBase,
+            result: `-$${formattedProfit}`,
+          });
+        } else {
+          profitResults.push({
+            ...runResultItemBase,
+            result: `$${formattedProfit}`,
+          });
+        }
+
+        // sort to see best and worst first
+        lossResults = sortByKey({
+          array: lossResults,
+          direction: 'ascending',
+          key: 'profit',
+        });
+        profitResults = sortByKey({
+          array: profitResults,
+          direction: 'descending',
+          key: 'profit',
+        });
+      }
+
+      if (handleResult) {
+        await handleResult({
+          result,
+          groupUpdates: {
+            largestProfit: !profitResults.length
+              ? undefined
+              : profitResults[0].profit,
+            largestLoss: !lossResults.length
+              ? undefined
+              : lossResults[0].profit,
+            losses: lossResults,
+            reportDate,
+            reportTime,
+            strategy: strategyKey,
+            strategyConfig: strategyConfigKey,
+            strategyVersion: strategyVersion,
+            profits: profitResults,
+            variationsRanCount,
+            variationsWithResultsCount,
+          },
+        });
+      }
+
+      return result?.profit || 0;
+    };
+
+    const runProfit = await runVariation(strategyConfigVariation, start);
+
+    // if the run was successful... try a year
+    if (runProfit > 0) {
+      await runVariation(
+        {
+          ...strategyConfigVariation,
+          variation: `${strategyConfigVariation.variation}_year`,
         },
-      });
+        moment(start).subtract(1, 'year').toISOString(),
+      );
     }
   }
 
