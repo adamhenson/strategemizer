@@ -277,7 +277,11 @@ const simulateTrade = async ({
     }
 
     // if current trade is occurring after our entry trade,
-    if (moment(trade.t).isAfter(moment(entryDate))) {
+    if (
+      moment(trade.t).isAfter(
+        moment(entryDate).add(ORDER_EXECUTION_SECONDS, 'seconds'),
+      )
+    ) {
       // if we're using a trailing percent, then we only set a trailing
       // stop and we don't set profit
       if (!trailPercent) {
