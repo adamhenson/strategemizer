@@ -310,7 +310,7 @@ export const getBars = async ({
 }: {
   alpacaClient: AlpacaClient;
   bars?: Bar[];
-  end: string;
+  end?: string;
   limit?: number;
   next_page_token?: string;
   start: string;
@@ -369,7 +369,7 @@ export const getBarsWithRetry = async ({
   timeframe,
 }: {
   alpacaClient: AlpacaClient;
-  end: string;
+  end?: string;
   limit?: number;
   retryCount?: number;
   retryMax?: number;

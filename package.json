@@ -9,6 +9,7 @@
   "bin": "dist/bin/strategemizer.js",
   "scripts": {
     "build": "tsc",
+    "get-symbols": "ts-node-esm --experimental-specifier-resolution=node src/bin/getSymbols.ts",
     "lint": "eslint",
     "prettier": "prettier --write '**/*.{ts,tsx}'",
     "prepare": "husky install",

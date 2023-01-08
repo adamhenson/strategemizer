@@ -1,6 +1,18 @@
 // this file is loosely typed as it was copied from another project
 import fetch from 'node-fetch';
 import queryString from 'query-string';
+import { Asset, Trade } from '../types';
+
+export interface AlpacaClientError {
+  error: string;
+  metadata?: any;
+  status?: number;
+}
+
+export interface GetLatestTradeResult {
+  symbol: string;
+  trade: Trade;
+}
 
 const { LOG_LEVEL = 'error' } = process.env;
 
@@ -462,7 +474,9 @@ export default class AlpacaClient {
   }
 
   // https://alpaca.markets/docs/api-references/market-data-api/stock-pricing-data/historical/#latest-trade
-  async getLatestTrade(symbol: string) {
+  async getLatestTrade(
+    symbol: string,
+  ): Promise<GetLatestTradeResult | AlpacaClientError> {
     try {
       // the way we determine crypto is presence of a `/` in symbol
       const isCrypto = symbol.includes('-') || symbol.includes('/');
@@ -659,7 +673,7 @@ export default class AlpacaClient {
   }
 
   // https://alpaca.markets/docs/api-references/trading-api/assets/
-  async getAssets(query: any) {
+  async getAssets(query: any): Promise<Asset[] | AlpacaClientError> {
     try {
       const apiUrl = getUrlWithQuery(
         `${this.baseUrl}${ALPACA_API_PATH_ASSETS}`,
