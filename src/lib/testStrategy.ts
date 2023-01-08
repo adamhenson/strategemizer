@@ -2,7 +2,7 @@
 import moment from 'moment-timezone';
 import path from 'path';
 import { v4 as uuid } from 'uuid';
-import { Bar, StrategyConfig, StartAndEnd, Strategy } from '../types';
+import { StrategyConfig, StartAndEnd, Strategy } from '../types';
 import AlpacaClient from './AlpacaClient';
 import archiveDirectory from './archiveDirectory';
 import createCsv from './createCsv';
@@ -390,98 +390,35 @@ const runStrategy = async ({ symbol, start, end }: RunStrategyInput) => {
       console.log('unresolved total', strategyResults.length);
     }
 
-    const bars1Min = await getBarsWithRetry({
+    const bars = await getBarsWithRetry({
       alpacaClient,
       end,
       symbol,
       start,
-      timeframe: '1Min',
+      timeframe,
     });
 
-    if (!bars1Min) {
-      return;
-    }
-
-    const bars5Min = await getBarsWithRetry({
-      alpacaClient,
-      end,
-      symbol,
-      start,
-      timeframe: '5Min',
-    });
-
-    if (!bars5Min) {
-      return;
-    }
-
-    let previousDay = 1;
-    const getPreviousDayBars = async (): Promise<Bar[] | undefined> => {
-      const previousDayBars = await getBarsWithRetry({
-        alpacaClient,
-        limit: 10000,
-        timeframe: '1Min',
-        start: moment(start).subtract(previousDay, 'day').toISOString(),
-        end: moment(end).subtract(previousDay, 'day').toISOString(),
-        symbol,
-      });
-
-      const isResultValid = previousDayBars;
-
-      previousDay++;
-      if (isResultValid) {
-        return previousDayBars;
-      } else if (previousDay > 5) {
-        return;
-      } else {
-        return getPreviousDayBars();
-      }
-    };
-
-    const bars1MinPreviousDay = await getPreviousDayBars();
-
-    if (!bars1MinPreviousDay) {
+    if (!bars) {
       return;
     }
 
     // test every bar as if it was the most recent
-    if (timeframe === '5Min') {
-      for (const [index] of bars5Min.entries()) {
-        const sliced5MinBars = bars5Min.slice(0, index + 1);
-        if (sliced5MinBars.length) {
-          const result = await strategy({
-            bars: sliced5MinBars,
-            config: strategyConfig,
-            symbol,
-          });
+    for (const [index] of bars.entries()) {
+      const slicedBars = bars.slice(0, index + 1);
+      if (slicedBars.length) {
+        const result = await strategy({
+          bars: slicedBars,
+          config: strategyConfig,
+          symbol,
+        });
 
-          if (result) {
-            strategyResults.push({
-              ...result,
-              strategyId: uuid(),
-              symbol,
-              tTime: moment(result.t).valueOf(),
-            });
-          }
-        }
-      }
-    } else {
-      for (const [index] of bars1Min.entries()) {
-        const sliced1MinBars = bars1Min.slice(0, index + 1);
-        if (sliced1MinBars.length) {
-          const result = await strategy({
-            bars: sliced1MinBars,
-            config: strategyConfig,
+        if (result) {
+          strategyResults.push({
+            ...result,
+            strategyId: uuid(),
             symbol,
+            tTime: moment(result.t).valueOf(),
           });
-
-          if (result) {
-            strategyResults.push({
-              ...result,
-              strategyId: uuid(),
-              symbol,
-              tTime: moment(result.t).valueOf(),
-            });
-          }
         }
       }
     }
