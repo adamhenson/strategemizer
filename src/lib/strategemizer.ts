@@ -167,7 +167,9 @@ const strategemizer = async ({
   console.log('');
   console.log('◉ running with', configVariationLength, 'config variations');
   if (skipToVariation) {
-    console.log(`◉ skipping to variation after ${skipToVariation}`);
+    console.log(
+      `◉ skipping to variation after ${skipToVariation}, with report date ${reportDate} and report time ${reportTime}`,
+    );
   }
 
   const outputDirectoryBase = `${mainOutputDirectory}/${strategyKey}/v_${strategyVersion}/config_${strategyConfigKey}/${reportDate}/${reportTime}`;
