@@ -92,6 +92,8 @@ export interface StrategemizerOptions {
   accountBudgetMultiplier?: number;
   accountBudgetPercentPerTrade?: number;
   end: string;
+  existingLosses?: StrategyResult[];
+  existingProfits?: StrategyResult[];
   handleResult?: (result: HandleRunResultData) => Promise<void>;
   handleStart?: (result: StrategemizerGroupRunStartData) => Promise<void>;
   handleStrategyError?: HandleStrategyError;
@@ -103,6 +105,7 @@ export interface StrategemizerOptions {
   maxLossPercent?: number;
   shouldReturnAssetPaths?: boolean;
   shouldDelayForLogs?: boolean;
+  skipToVariation?: string;
   start: string;
   strategy: Strategy;
   strategyConfig: StrategyConfig;
@@ -118,6 +121,8 @@ const strategemizer = async ({
   accountBudgetMultiplier = 4,
   accountBudgetPercentPerTrade = 100,
   end,
+  existingLosses,
+  existingProfits,
   handleResult,
   handleStart,
   handleStrategyError,
@@ -129,6 +134,7 @@ const strategemizer = async ({
   maxLossPercent,
   shouldDelayForLogs,
   shouldReturnAssetPaths,
+  skipToVariation,
   start,
   strategy,
   strategyConfig,
@@ -143,8 +149,8 @@ const strategemizer = async ({
   const startTime = moment();
   const strategyConfigVariations = getConfigVariations(strategyConfig);
   const configVariationLength = strategyConfigVariations.length;
-  let lossResults: StrategyResult[] = [];
-  let profitResults: StrategyResult[] = [];
+  let lossResults: StrategyResult[] = existingLosses || [];
+  let profitResults: StrategyResult[] = existingProfits || [];
 
   const packageContent = await getPackage();
   const packageContentParsed = JSON.parse(packageContent);
@@ -199,6 +205,14 @@ const strategemizer = async ({
 
   for (const strategyConfigVariation of strategyConfigVariations) {
     variationsRanCount++;
+
+    if (
+      skipToVariation &&
+      strategyConfigVariation.variation !== skipToVariation
+    ) {
+      continue;
+    }
+
     console.log(
       '◉ running variation',
       strategyConfigVariation.variation,

@@ -38,6 +38,9 @@ const cli = meow({
     shouldDelayForLogs: {
       type: 'boolean',
     },
+    skipToVariation: {
+      type: 'string',
+    },
     start: {
       type: 'string',
       isRequired: true,
@@ -74,6 +77,7 @@ const {
   maxLossPercent,
   shouldReturnAssetPaths,
   shouldDelayForLogs,
+  skipToVariation,
   start,
   strategyConfigKey,
   strategyKey,
@@ -96,6 +100,7 @@ strategemizer({
   maxLossPercent,
   shouldReturnAssetPaths,
   shouldDelayForLogs,
+  skipToVariation,
   start,
   strategy,
   strategyConfig,
