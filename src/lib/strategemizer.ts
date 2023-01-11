@@ -218,7 +218,9 @@ const strategemizer = async ({
     variationsRanCount++;
 
     if (skipToVariation && !hasReachedSkipIndicator) {
+      console.log('skipped', strategyConfigVariation.variation);
       if (strategyConfigVariation.variation === skipToVariation) {
+        console.log('detected', strategyConfigVariation.variation);
         hasReachedSkipIndicator = true;
       }
       continue;
