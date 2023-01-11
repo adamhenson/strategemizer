@@ -162,6 +162,9 @@ const strategemizer = async ({
   console.log('-----------------------------------');
   console.log('');
   console.log('◉ running with', configVariationLength, 'config variations');
+  if (skipToVariation) {
+    console.log(`◉ skipping to variation after ${skipToVariation}`);
+  }
 
   const outputDirectoryBase = `${mainOutputDirectory}/${strategyKey}/v_${strategyVersion}/config_${strategyConfigKey}/${reportDate}/${reportTime}`;
 
@@ -203,13 +206,15 @@ const strategemizer = async ({
     });
   }
 
+  let hasReachedSkipIndicator = false;
+
   for (const strategyConfigVariation of strategyConfigVariations) {
     variationsRanCount++;
 
-    if (
-      skipToVariation &&
-      strategyConfigVariation.variation !== skipToVariation
-    ) {
+    if (skipToVariation && !hasReachedSkipIndicator) {
+      if (strategyConfigVariation.variation === skipToVariation) {
+        hasReachedSkipIndicator = true;
+      }
       continue;
     }
 
