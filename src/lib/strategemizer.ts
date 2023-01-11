@@ -94,6 +94,8 @@ export interface StrategemizerOptions {
   end: string;
   existingLosses?: StrategyResult[];
   existingProfits?: StrategyResult[];
+  existingReportDate?: string;
+  existingReportTime?: string;
   handleResult?: (result: HandleRunResultData) => Promise<void>;
   handleStart?: (result: StrategemizerGroupRunStartData) => Promise<void>;
   handleStrategyError?: HandleStrategyError;
@@ -123,6 +125,8 @@ const strategemizer = async ({
   end,
   existingLosses,
   existingProfits,
+  existingReportDate,
+  existingReportTime,
   handleResult,
   handleStart,
   handleStrategyError,
@@ -144,8 +148,8 @@ const strategemizer = async ({
   symbols,
   timeframe,
 }: StrategemizerOptions): Promise<StrategemizerGroupRunResult> => {
-  const reportDate = moment().format('YYYY-MM-DD');
-  const reportTime = moment().format('h-mm-ss-a');
+  const reportDate = existingReportDate || moment().format('YYYY-MM-DD');
+  const reportTime = existingReportTime || moment().format('h-mm-ss-a');
   const startTime = moment();
   const strategyConfigVariations = getConfigVariations(strategyConfig);
   const configVariationLength = strategyConfigVariations.length;
