@@ -4,14 +4,20 @@ import queryString from 'query-string';
 import { Asset, Trade } from '../types';
 
 export interface AlpacaClientError {
-  error: string;
+  error?: string;
   metadata?: any;
   status?: number;
 }
 
-export interface GetLatestTradeResult {
-  symbol: string;
-  trade: Trade;
+export interface GetLatestTradeResult extends AlpacaClientError {
+  symbol?: string;
+  trade?: Trade;
+}
+
+export interface GetTradesResult extends AlpacaClientError {
+  symbol?: string;
+  trades?: Trade[];
+  next_page_token?: string | null;
 }
 
 const { LOG_LEVEL = 'error' } = process.env;
@@ -44,7 +50,7 @@ const getUrlWithQuery = (url: string, query: any = {}) => {
   return `${url}${fullQueryString}`;
 };
 
-const getErrorJson = (error: string, metadata?: any, status?: number) => {
+const getErrorJson = (error?: string, metadata?: any, status?: number) => {
   return { error, metadata, status };
 };
 
@@ -421,7 +427,7 @@ export default class AlpacaClient {
   // https://alpaca.markets/docs/api-references/market-data-api/stock-pricing-data/historical/#multi-trades
   // and
   // https://alpaca.markets/docs/api-references/market-data-api/crypto-pricing-data/historical/#trades
-  async getTrades(symbol: string, query: any) {
+  async getTrades(symbol: string, query: any): Promise<GetTradesResult> {
     try {
       // the way we determine crypto is presence of a `/` in symbol
       const isCrypto = symbol.includes('-') || symbol.includes('/');
@@ -459,6 +465,7 @@ export default class AlpacaClient {
 
       if (initialResponse.trades) {
         return {
+          symbol,
           trades: initialResponse.trades[cryptoSymbol],
           next_page_token: initialResponse.next_page_token,
         };
@@ -474,9 +481,7 @@ export default class AlpacaClient {
   }
 
   // https://alpaca.markets/docs/api-references/market-data-api/stock-pricing-data/historical/#latest-trade
-  async getLatestTrade(
-    symbol: string,
-  ): Promise<GetLatestTradeResult | AlpacaClientError> {
+  async getLatestTrade(symbol: string): Promise<GetLatestTradeResult> {
     try {
       // the way we determine crypto is presence of a `/` in symbol
       const isCrypto = symbol.includes('-') || symbol.includes('/');

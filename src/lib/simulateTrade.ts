@@ -70,7 +70,7 @@ interface SimulateTradeReturn {
   profit: number;
   profitPercent: number;
   qty: number;
-  exitDate: string;
+  exitDate?: string;
   exitTotal: number;
   exitPrice: number;
   spent: number;
@@ -175,7 +175,7 @@ const simulateTrade = async ({
     page_token: next_page_token,
   });
 
-  if (tradeResult.error) {
+  if (tradeResult?.error) {
     console.log(`${symbol}: error fetching trades`, tradeResult.error);
     if (retryCount > RETRY_MAX) {
       console.log(`${symbol}: retries maxed... giving up on simulate trade`);

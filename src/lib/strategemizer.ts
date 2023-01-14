@@ -12,6 +12,7 @@ import createDirectory from './createDirectory';
 import createJsonFile from './createJsonFile';
 import getConfigVariations from './getConfigVariations';
 import getPackage from './getPackage';
+import logTimeElapsed from './logTimeElapsed';
 import testStrategy, {
   HandleStrategyError,
   HandleTestStrategySymbolIndex,
@@ -424,28 +425,7 @@ const strategemizer = async ({
     console.log('');
   }
 
-  const endTime = moment();
-  const diffDays = endTime.diff(startTime, 'days');
-  const diffHours = endTime.diff(startTime, 'hours');
-  const diffMinutes = endTime.diff(startTime, 'minutes');
-  const diffSeconds = endTime.diff(startTime, 'seconds');
-  let timeElapsed: string;
-  if (diffDays > 0) {
-    const unitText = diffDays === 1 ? 'day' : 'days';
-    timeElapsed = `${diffDays.toFixed(2)} ${unitText}`;
-  } else if (diffHours > 0) {
-    const unitText = diffHours === 1 ? 'hour' : 'hours';
-    timeElapsed = `${diffHours.toFixed(2)} ${unitText}`;
-  } else if (diffMinutes > 0) {
-    const unitText = diffMinutes === 1 ? 'minute' : 'minutes';
-    timeElapsed = `${diffMinutes} ${unitText}`;
-  } else {
-    const unitText = diffSeconds === 1 ? 'second' : 'seconds';
-    timeElapsed = `${diffSeconds} ${unitText}`;
-  }
-
-  const timeAtCompletion = moment().format('hh:mma, MM/DD/YYYY');
-  console.log(`✔️ completed in ${timeElapsed} at ${timeAtCompletion} EST`);
+  const { timeElapsed, timeAtCompletion } = logTimeElapsed(startTime);
 
   createDirectory(outputDirectoryBase);
   const summaryFilePath = path.resolve(`${outputDirectoryBase}/summary.json`);

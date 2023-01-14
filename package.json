@@ -14,7 +14,8 @@
     "prettier": "prettier --write '**/*.{ts,tsx}'",
     "prepare": "husky install",
     "strategemizer": "ts-node-esm --experimental-specifier-resolution=node src/bin/strategemizer.ts",
-    "test": "jest"
+    "test": "jest",
+    "trade-analyzer": "ts-node-esm --experimental-specifier-resolution=node src/bin/strategemizerTradeAnalyzer.ts"
   },
   "type": "module",
   "lint-staged": {
