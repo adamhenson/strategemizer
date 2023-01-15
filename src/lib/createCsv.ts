@@ -1,6 +1,6 @@
 import fs from 'fs';
 
-type Content = string | number;
+export type Content = string | number;
 
 const createCsv = ({
   content,

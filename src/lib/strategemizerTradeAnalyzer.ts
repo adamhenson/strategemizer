@@ -1,13 +1,19 @@
 import moment from 'moment-timezone';
+import path from 'path';
+import tradeAnalyzerBouncy from '../analyzers/tradeAnalyzerBouncy';
 import tradeAnalyzerStandard from '../analyzers/tradeAnalyzerStandard';
 import {
   ALPACA_BASE_URL,
   ALPACA_BASE_URL_DATA,
   ALPACA_API_KEY_ID,
   ALPACA_SECRET_KEY,
+  MAIN_OUTPUT_DIRECTORY,
 } from '../config';
+import standardSymbolList from '../symbols/public/standard';
 import { Trade } from '../types';
 import AlpacaClient from './AlpacaClient';
+import createCsv, { Content } from './createCsv';
+import createDirectory from './createDirectory';
 import getPackage from './getPackage';
 import logTimeElapsed from './logTimeElapsed';
 
@@ -73,16 +79,20 @@ const getTrades = async ({
 
 const strategemizerTradeAnalyzer = async ({
   analyzerType = 'standard',
+  buyingPower,
   end,
   start,
-  symbol,
+  symbolListKey = 'standard',
 }: {
   analyzerType?: string;
+  buyingPower?: number;
   end: string;
   start: string;
-  symbol: string;
+  symbolListKey?: string;
 }) => {
   const startTime = moment();
+  const reportDate = moment().format('YYYY-MM-DD');
+  const reportTime = moment().format('h-mm-ss-a');
   const packageContent = await getPackage();
   const packageContentParsed = JSON.parse(packageContent);
 
@@ -101,20 +111,75 @@ const strategemizerTradeAnalyzer = async ({
     LOG_LEVEL.includes('verbose') && LOG_LEVEL.includes('alpaca-client'),
   );
 
-  const trades = await getTrades({
-    alpacaClient,
-    end,
-    start,
-    symbol,
-  });
-
-  if (analyzerType === 'standard') {
-    await tradeAnalyzerStandard({
-      trades,
-    });
+  let symbols: string[] = [];
+  if (symbolListKey === 'standard') {
+    symbols = standardSymbolList;
   }
 
-  console.log('trades analyzed', trades.length);
+  const headerRowsBouncy = [
+    'symbol',
+    'profit',
+    'profit trades',
+    'loss trades',
+    'avg minutes before profit',
+    'avg loss perc',
+  ];
+  const contentRowsBouncy: Content[][] = [];
+
+  for (const [index, symbol] of symbols.entries()) {
+    console.log('---------');
+    console.log(index, symbol);
+    console.log('---------');
+    console.log('');
+    const trades = await getTrades({
+      alpacaClient,
+      end,
+      start,
+      symbol,
+    });
+    console.log('');
+    console.log('trades', trades.length);
+    console.log('');
+
+    if (analyzerType === 'standard') {
+      await tradeAnalyzerStandard({
+        trades,
+      });
+    } else if (analyzerType === 'bouncy') {
+      const result = await tradeAnalyzerBouncy({ buyingPower, trades });
+      if (result) {
+        console.log({
+          symbol,
+          profit: result.profit,
+          profitTrades: result.profitTrades,
+          lossTrades: result.lossTrades,
+          averageMinutesBeforeProfitTrade:
+            result.averageMinutesBeforeProfitTrade,
+          avearageLossPercent: result.avearageLossPercent,
+        });
+        contentRowsBouncy.push([
+          symbol,
+          result.profit,
+          result.profitTrades,
+          result.lossTrades,
+          result.averageMinutesBeforeProfitTrade,
+          result.avearageLossPercent,
+        ]);
+      }
+    }
+  }
+
+  if (analyzerType === 'bouncy') {
+    const outputDirectory = path.resolve(
+      `${MAIN_OUTPUT_DIRECTORY}/trade-analysis/${reportDate}/${reportTime}`,
+    );
+    createDirectory(outputDirectory);
+    createCsv({
+      content: contentRowsBouncy,
+      header: headerRowsBouncy,
+      outputPath: `${outputDirectory}/report.csv`,
+    });
+  }
 
   logTimeElapsed(startTime);
 };
