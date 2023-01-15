@@ -27,7 +27,7 @@ export default class ErrorHandler {
 
     const emailResponse = await emailByTemplate({
       dynamicTemplateData: {
-        errors,
+        messages: errors,
         subject: `[ALERT][P${priority}][production]: ${this.namespace} error`,
       },
     });

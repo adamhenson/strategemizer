@@ -20,6 +20,13 @@ export interface GetTradesResult extends AlpacaClientError {
   next_page_token?: string | null;
 }
 
+export interface GetClockResult extends AlpacaClientError {
+  timestamp?: string;
+  is_open?: boolean;
+  next_open?: string;
+  next_close?: string;
+}
+
 const { LOG_LEVEL = 'error' } = process.env;
 
 const shouldLog = LOG_LEVEL.includes('alpaca-client');
@@ -180,7 +187,7 @@ export default class AlpacaClient {
   }
 
   // https://alpaca.markets/docs/api-references/trading-api/clock/
-  async getClock() {
+  async getClock(): Promise<GetClockResult> {
     try {
       const apiUrl = `${this.baseUrl}${ALPACA_API_PATH_CLOCK}`;
 
