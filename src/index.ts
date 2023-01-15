@@ -33,4 +33,5 @@ export {
   StrategyConfig,
   StrategyConfigs,
 } from './types';
+export { default as getQuantity } from './lib/getQuantity';
 export { utils };
