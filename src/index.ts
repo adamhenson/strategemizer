@@ -1,5 +1,6 @@
 import * as utils from './lib/utils';
 
+export { default as AlpacaClient } from './lib/AlpacaClient';
 export {
   HandleStrategyError,
   ResultTable,
