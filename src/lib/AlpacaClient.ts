@@ -385,7 +385,7 @@ export default class AlpacaClient {
   }
 
   // https://alpaca.markets/docs/api-references/trading-api/positions/
-  async closePosition(symbol: string, query: any) {
+  async closePosition(symbol: string, query?: any) {
     try {
       const apiUrl = getUrlWithQuery(
         `${this.baseUrl}${ALPACA_API_PATH_POSITIONS}/${symbol}`,
