@@ -5,6 +5,8 @@ import { Trade } from '../types';
 moment.tz.setDefault('America/New_York');
 
 const ORDER_TIME_SECONDS = 2;
+const ORDER_EXPIRATION_SECONDS = 10;
+const ORDER_EXIT_EXPIRATION_MINUTES = 1;
 
 interface TradeTimes {
   start: string;
@@ -70,8 +72,14 @@ const lightTradeSimulation = ({
   let profitPrice = price + 0.01;
 
   // expirations. this is meant to be quickly entered and quickly exited
-  const orderExpiration = moment(detectedTrade.t).add(10, 'seconds');
-  const exitOrderExpiration = moment(detectedTrade.t).add(1, 'minutes');
+  const orderExpiration = moment(detectedTrade.t).add(
+    ORDER_EXPIRATION_SECONDS,
+    'seconds',
+  );
+  const exitOrderExpiration = moment(detectedTrade.t).add(
+    ORDER_EXIT_EXPIRATION_MINUTES,
+    'minutes',
+  );
 
   for (const [index, trade] of trades.entries()) {
     // theoretically we're in the range where our entry trade
