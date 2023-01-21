@@ -1,18 +1,17 @@
 import fs from 'fs';
-
-export type Content = string | number;
+import { CsvRows, CsvHeaderRow } from '../types';
 
 const createCsv = ({
   content,
   header,
   outputPath,
 }: {
-  content: Content[][];
-  header: Content[];
+  content: CsvRows;
+  header: CsvHeaderRow;
   outputPath: string;
 }) => {
-  const csvHeader = `${header.join(',')}\n`;
-  const csvContent = content.map((row) => `${row.join(',')}`).join('\n');
+  const csvHeader = `${header.join(', ')}\n`;
+  const csvContent = content.map((row) => `${row.join(', ')}`).join('\n');
   fs.writeFileSync(outputPath, `${csvHeader}${csvContent}`);
 };
 

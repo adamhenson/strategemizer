@@ -320,7 +320,7 @@ export const getBars = async ({
   const response = await alpacaClient.getBars(symbol, {
     start,
     timeframe,
-    ...(next_page_token && { next_page_token }),
+    ...(next_page_token && { page_token: next_page_token }),
     ...(end && { end }),
     ...(limit && { limit }),
   });

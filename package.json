@@ -8,6 +8,7 @@
   },
   "bin": "dist/bin/strategemizer.js",
   "scripts": {
+    "bar-analyzer": "ts-node-esm --experimental-specifier-resolution=node src/bin/strategemizerBarAnalyzer.ts",
     "build": "tsc",
     "get-symbols": "ts-node-esm --experimental-specifier-resolution=node src/bin/getSymbols.ts",
     "lint": "eslint",

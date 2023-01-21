@@ -10,9 +10,9 @@ import {
   MAIN_OUTPUT_DIRECTORY,
 } from '../config';
 import standardSymbolList from '../symbols/public/standard';
-import { Trade } from '../types';
+import { CsvRows, Trade } from '../types';
 import AlpacaClient from './AlpacaClient';
-import createCsv, { Content } from './createCsv';
+import createCsv from './createCsv';
 import createDirectory from './createDirectory';
 import getPackage from './getPackage';
 import logTimeElapsed from './logTimeElapsed';
@@ -82,13 +82,13 @@ const strategemizerTradeAnalyzer = async ({
   buyingPower,
   end,
   start,
-  symbolListKey = 'standard',
+  symbolsKey = 'standard',
 }: {
   analyzerType?: string;
   buyingPower?: number;
   end: string;
   start: string;
-  symbolListKey?: string;
+  symbolsKey?: string;
 }) => {
   const startTime = moment();
   const reportDate = moment().format('YYYY-MM-DD');
@@ -112,7 +112,7 @@ const strategemizerTradeAnalyzer = async ({
   );
 
   let symbols: string[] = [];
-  if (symbolListKey === 'standard') {
+  if (symbolsKey === 'standard') {
     symbols = standardSymbolList;
   }
 
@@ -124,7 +124,7 @@ const strategemizerTradeAnalyzer = async ({
     'avg minutes before profit',
     'avg loss perc',
   ];
-  const contentRowsBouncy: Content[][] = [];
+  const contentRowsBouncy: CsvRows = [];
 
   for (const [index, symbol] of symbols.entries()) {
     console.log('---------');

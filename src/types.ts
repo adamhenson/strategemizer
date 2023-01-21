@@ -22,6 +22,11 @@ export interface Bar {
   v: number;
 }
 
+export type CsvCellValue = string | number;
+export type CsvRow = CsvCellValue[];
+export type CsvRows = CsvCellValue[][];
+export type CsvHeaderRow = CsvCellValue[];
+
 export interface Trade {
   c: string[];
   i: number;

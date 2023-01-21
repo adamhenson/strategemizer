@@ -1,15 +1,12 @@
 #!/usr/bin/env node
 import meow from 'meow';
-import strategemizerTradeAnalyzer from '../lib/strategemizerTradeAnalyzer';
+import strategemizerBarAnalyzer from '../lib/strategemizerBarAnalyzer';
 
 const cli = meow({
   importMeta: import.meta,
   flags: {
     analyzerType: {
       type: 'string',
-    },
-    buyingPower: {
-      type: 'number',
     },
     end: {
       type: 'string',
@@ -22,15 +19,18 @@ const cli = meow({
     symbolsKey: {
       type: 'string',
     },
+    timeframe: {
+      type: 'string',
+    },
   },
 });
 
-const { analyzerType, buyingPower, end, start, symbolsKey } = cli.flags;
+const { analyzerType, end, start, symbolsKey, timeframe } = cli.flags;
 
-strategemizerTradeAnalyzer({
+strategemizerBarAnalyzer({
   analyzerType,
-  buyingPower,
   end,
   start,
   symbolsKey,
+  timeframe,
 });
