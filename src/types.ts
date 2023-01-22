@@ -54,6 +54,11 @@ export interface TechnicalIndicatorsInputWithVolume
   volume: number[];
 }
 
+export interface TradeTimes {
+  start: string;
+  end: string;
+}
+
 export interface ConfigRange {
   increment?: number;
   range: [number, number];

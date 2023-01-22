@@ -1,17 +1,17 @@
 import moment from 'moment-timezone';
-import { delay, formatCurrencyNumber, getPercentChange } from '../lib/utils';
-import { Trade } from '../types';
+import {
+  delay,
+  isWithinExistingTradeTime,
+  formatCurrencyNumber,
+  getPercentChange,
+} from '../lib/utils';
+import { Trade, TradeTimes } from '../types';
 
 moment.tz.setDefault('America/New_York');
 
 const ORDER_TIME_SECONDS = 2;
 const ORDER_EXPIRATION_SECONDS = 10;
 const ORDER_EXIT_EXPIRATION_MINUTES = 1;
-
-interface TradeTimes {
-  start: string;
-  end: string;
-}
 
 interface TrendRecord {
   minutesBeforeExit?: number;
@@ -30,17 +30,6 @@ interface TrendRecordResult {
   totalLossPercent: number;
   totalMinutesBeforeProfit: number;
 }
-
-const isWithinExistingTradeTime = (
-  date: string,
-  tradeTimes: TradeTimes[],
-): boolean => {
-  const matchingTimeframe = tradeTimes.find(
-    ({ start, end }) =>
-      moment(date).isAfter(moment(start)) && moment(date).isBefore(moment(end)),
-  );
-  return !!matchingTimeframe;
-};
 
 const lightTradeSimulation = ({
   buyingPower,

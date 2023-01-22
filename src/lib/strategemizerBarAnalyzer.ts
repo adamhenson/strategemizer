@@ -5,6 +5,11 @@ import barAnalyzerEndOfDay, {
   reportHeader as reportEndOfDayHeader,
   summaryHeader as summaryEndOfDayHeader,
 } from '../analyzers/barAnalyzerEndOfDay';
+import barAnalyzerEndOfDayTrade, {
+  barAnalyzerSummaryEndOfDayTrade,
+  reportHeader as reportEndOfDayTradeHeader,
+  summaryHeader as summaryEndOfDayTradeHeader,
+} from '../analyzers/barAnalyzerEndOfDayTrade';
 import {
   ALPACA_BASE_URL,
   ALPACA_BASE_URL_DATA,
@@ -13,7 +18,7 @@ import {
   MAIN_OUTPUT_DIRECTORY,
 } from '../config';
 import standardSymbolList from '../symbols/public/standard';
-import { CsvRows } from '../types';
+import { CsvRows, TradeTimes } from '../types';
 import AlpacaClient from './AlpacaClient';
 import createCsv from './createCsv';
 import createDirectory from './createDirectory';
@@ -27,12 +32,16 @@ const { LOG_LEVEL = 'error' } = process.env;
 
 const strategemizerBarAnalyzer = async ({
   analyzerType = 'end-of-day',
+  buyingPower = 120000,
+  buyingPowerMultiplier = 4,
   end,
   start,
   symbolsKey = 'standard',
   timeframe = '1Min',
 }: {
   analyzerType?: string;
+  buyingPower?: number;
+  buyingPowerMultiplier?: number;
   end: string;
   start: string;
   symbolsKey?: string;
@@ -65,6 +74,8 @@ const strategemizerBarAnalyzer = async ({
   }
 
   let rows: CsvRows = [];
+  let updatedBuyingPower = buyingPower;
+  let tradeTimes: TradeTimes[] = [];
 
   for (const [index, symbol] of symbols.entries()) {
     console.log('---------');
@@ -97,6 +108,20 @@ const strategemizerBarAnalyzer = async ({
       if (row) {
         rows = [...rows, ...row];
       }
+    } else if (analyzerType === 'end-of-day-trade') {
+      const result = await barAnalyzerEndOfDayTrade({
+        bars,
+        buyingPower: updatedBuyingPower,
+        buyingPowerMultiplier,
+        symbol,
+        timeframe,
+        tradeTimes,
+      });
+      if (result.rows) {
+        rows = [...rows, ...result.rows];
+        tradeTimes = result.tradeTimes;
+        updatedBuyingPower = result.buyingPower;
+      }
     }
   }
 
@@ -108,7 +133,12 @@ const strategemizerBarAnalyzer = async ({
   createDirectory(outputDirectory);
   createCsv({
     content: rows,
-    header: analyzerType !== 'end-of-day' ? [] : reportEndOfDayHeader,
+    header:
+      analyzerType === 'end-of-day'
+        ? reportEndOfDayHeader
+        : analyzerType === 'end-of-day-trade'
+        ? reportEndOfDayTradeHeader
+        : [],
     outputPath: `${outputDirectory}/report.csv`,
   });
 
@@ -116,11 +146,18 @@ const strategemizerBarAnalyzer = async ({
 
   if (analyzerType === 'end-of-day') {
     summaryRows = barAnalyzerSummaryEndOfDay(rows);
+  } else if (analyzerType === 'end-of-day-trade') {
+    summaryRows = barAnalyzerSummaryEndOfDayTrade(rows);
   }
 
   createCsv({
     content: summaryRows,
-    header: analyzerType !== 'end-of-day' ? [] : summaryEndOfDayHeader,
+    header:
+      analyzerType === 'end-of-day'
+        ? summaryEndOfDayHeader
+        : analyzerType === 'end-of-day-trade'
+        ? summaryEndOfDayTradeHeader
+        : [],
     outputPath: `${outputDirectory}/summary.csv`,
   });
 

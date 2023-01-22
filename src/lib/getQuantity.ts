@@ -12,7 +12,7 @@ export const getQuantity = async ({
   price,
   stopPrice,
 }: {
-  alpacaClient: AlpacaClient;
+  alpacaClient?: AlpacaClient;
   buyingPower?: number;
   buyingPowerNonMarginable?: number;
   isCrypto?: boolean;
@@ -34,6 +34,9 @@ export const getQuantity = async ({
     typeof buyingPower !== 'number' ||
     typeof buyingPowerNonMarginable !== 'number'
   ) {
+    if (!alpacaClient) {
+      return 0;
+    }
     const account = await alpacaClient.getAccount();
     buyingPower = Number(account.buying_power);
     buyingPowerNonMarginable = Number(account.non_marginable_buying_power);

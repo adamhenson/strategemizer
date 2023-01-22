@@ -1,5 +1,6 @@
 import moment from 'moment-timezone';
 import { EMA, RSI, Stochastic, VWAP } from 'technicalindicators';
+import { TradeTimes } from '../types';
 import {
   Bar,
   BarWithExtras,
@@ -437,6 +438,17 @@ export const getBarsWithRetry = async ({
   }
 
   return bars as Bar[];
+};
+
+export const isWithinExistingTradeTime = (
+  date: string,
+  tradeTimes: TradeTimes[],
+): boolean => {
+  const matchingTimeframe = tradeTimes.find(
+    ({ start, end }) =>
+      moment(date).isAfter(moment(start)) && moment(date).isBefore(moment(end)),
+  );
+  return !!matchingTimeframe;
 };
 
 export const sortByKey = ({
