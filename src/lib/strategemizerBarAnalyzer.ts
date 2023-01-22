@@ -114,7 +114,6 @@ const strategemizerBarAnalyzer = async ({
         buyingPower: updatedBuyingPower,
         buyingPowerMultiplier,
         symbol,
-        timeframe,
         tradeTimes,
       });
       if (result.rows) {
