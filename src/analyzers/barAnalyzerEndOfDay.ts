@@ -96,7 +96,7 @@ const barAnalyzerEndOfDay = async ({
     const percentChangeFirst3 = getPercentChange(firstBar.o, thirdBar.c);
 
     const { barsWithExtras } = getIndicators({
-      bars: bars,
+      bars,
     });
     const slicedBarsWithExtras = barsWithExtras.slice(index - 10, index + 1);
 
