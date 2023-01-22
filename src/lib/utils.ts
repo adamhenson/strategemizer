@@ -1,3 +1,4 @@
+import moment from 'moment-timezone';
 import { EMA, RSI, Stochastic, VWAP } from 'technicalindicators';
 import {
   Bar,
@@ -6,6 +7,8 @@ import {
   TechnicalIndicatorsInputWithVolume,
 } from '../types';
 import AlpacaClient from './AlpacaClient';
+
+moment.tz.setDefault('America/New_York');
 
 const { LOG_LEVEL = 'error' } = process.env;
 
@@ -177,6 +180,30 @@ export const getBarsWithExtras = (bars: Bar[]): BarWithExtras[] => {
     v: bars[index].v,
     vwap: formatCurrencyNumber(current),
   }));
+};
+
+export const getBarsWithRealTimeMostRecent = ({
+  realTimeBar,
+  bars,
+}: {
+  realTimeBar: Bar;
+  bars: Bar[];
+}) => {
+  if (!realTimeBar) {
+    return bars;
+  }
+
+  const mostRecentBar = bars[bars.length - 1];
+
+  if (realTimeBar.t === mostRecentBar.t) {
+    return bars;
+  }
+
+  if (moment(realTimeBar.t).diff(moment(mostRecentBar.t), 'seconds') < 0) {
+    return bars;
+  }
+
+  return [...bars, realTimeBar];
 };
 
 export const getIndicators = ({
