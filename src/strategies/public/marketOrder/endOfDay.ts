@@ -12,7 +12,9 @@ moment.tz.setDefault('America/New_York');
 const { LOG_LEVEL = 'error' } = process.env;
 const LOSS_PERCENT = 0.1;
 const MIN_PERCENT_CHANGE = 0.1;
-const MIN_RVOL = 2.5;
+const MIN_RVOL = 2;
+const MIN_BODY_PERCENT = 70;
+const MIN_PERCENT_CHANGE_MOST_RECENT = MIN_PERCENT_CHANGE / 2;
 
 const name = 'end-of-day';
 const shouldLog = LOG_LEVEL.includes(name);
@@ -34,6 +36,43 @@ const endOfDay = ({
     moment(mostRecentBar.t).hours() !== 15 ||
     moment(mostRecentBar.t).minutes() !== 52
   ) {
+    return;
+  }
+
+  // the most recent bar should be moving up
+  if (mostRecentBar.c < mostRecentBar.o) {
+    return;
+  }
+
+  // most recent bar should have a pretty strong, long, full body
+  const mostRecentFullBarSize = mostRecentBar.h - mostRecentBar.l;
+  const mostRecentBarBodySize = mostRecentBar.c - mostRecentBar.o;
+  const mostRecentBodyPercent =
+    (mostRecentBarBodySize / mostRecentFullBarSize) * 100;
+  if (mostRecentBodyPercent < MIN_BODY_PERCENT) {
+    if (shouldLog) {
+      formattedLog({
+        isBad: true,
+        message: 'min body percent not met',
+        name,
+        symbol,
+      });
+    }
+    return;
+  }
+  const percentChangeLastBar = getPercentChange(
+    mostRecentBar.o,
+    mostRecentBar.c,
+  );
+  if (percentChangeLastBar < MIN_PERCENT_CHANGE_MOST_RECENT) {
+    if (shouldLog) {
+      formattedLog({
+        isBad: true,
+        message: 'min percent change last bar not met',
+        name,
+        symbol,
+      });
+    }
     return;
   }
 
