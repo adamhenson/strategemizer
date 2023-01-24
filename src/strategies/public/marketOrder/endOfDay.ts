@@ -10,9 +10,10 @@ import { Bar } from '../../../types';
 moment.tz.setDefault('America/New_York');
 
 const { LOG_LEVEL = 'error' } = process.env;
-const LOSS_PERCENT = 0.2;
-const MIN_PERCENT_CHANGE = 0.2;
-const MIN_RVOL = 2.2;
+const LOSS_PERCENT = 0.1;
+const MIN_PERCENT_CHANGE = 0.1;
+const MIN_RVOL = 2.5;
+
 const name = 'end-of-day';
 const shouldLog = LOG_LEVEL.includes(name);
 

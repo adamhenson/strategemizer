@@ -15,12 +15,16 @@ const cli = meow({
       isRequired: true,
       type: 'string',
     },
+    type: {
+      type: 'string',
+    },
   },
 });
 
-const { maxStockPrice, minStockPrice, name } = cli.flags;
+const { maxStockPrice, minStockPrice, name, type } = cli.flags;
 
 getSymbols({
+  getFunction: type,
   maxStockPrice,
   minStockPrice,
   name,

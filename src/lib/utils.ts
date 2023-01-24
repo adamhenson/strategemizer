@@ -446,7 +446,10 @@ export const isWithinExistingTradeTime = (
 ): boolean => {
   const matchingTimeframe = tradeTimes.find(
     ({ start, end }) =>
-      moment(date).isAfter(moment(start)) && moment(date).isBefore(moment(end)),
+      (moment(date).isAfter(moment(start)) &&
+        moment(date).isBefore(moment(end))) ||
+      start === date ||
+      end === date,
   );
   return !!matchingTimeframe;
 };

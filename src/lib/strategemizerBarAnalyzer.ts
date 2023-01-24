@@ -17,8 +17,9 @@ import {
   ALPACA_SECRET_KEY,
   MAIN_OUTPUT_DIRECTORY,
 } from '../config';
+import highVolumeSymbolList from '../symbols/public/highVolume';
 import standardSymbolList from '../symbols/public/standard';
-import { CsvRows, TradeTimes } from '../types';
+import { CostsByDay, CsvRows, TradeTimes } from '../types';
 import AlpacaClient from './AlpacaClient';
 import createCsv from './createCsv';
 import createDirectory from './createDirectory';
@@ -38,6 +39,7 @@ const strategemizerBarAnalyzer = async ({
   start,
   symbolsKey = 'standard',
   timeframe = '1Min',
+  version,
 }: {
   analyzerType?: string;
   buyingPower?: number;
@@ -46,6 +48,7 @@ const strategemizerBarAnalyzer = async ({
   start: string;
   symbolsKey?: string;
   timeframe?: string;
+  version: string;
 }) => {
   const startTime = moment();
   const reportDate = moment().format('YYYY-MM-DD');
@@ -71,12 +74,14 @@ const strategemizerBarAnalyzer = async ({
   let symbols: string[] = [];
   if (symbolsKey === 'standard') {
     symbols = standardSymbolList;
+  } else if (symbolsKey === 'high-volume') {
+    symbols = highVolumeSymbolList;
   }
 
+  let costsByDay: CostsByDay = {};
   let rows: CsvRows = [];
   let updatedBuyingPower = buyingPower;
   let tradeTimes: TradeTimes[] = [];
-
   for (const [index, symbol] of symbols.entries()) {
     console.log('---------');
     console.log(index, symbol);
@@ -92,7 +97,7 @@ const strategemizerBarAnalyzer = async ({
     });
 
     if (!bars) {
-      return;
+      continue;
     }
 
     console.log('');
@@ -113,11 +118,13 @@ const strategemizerBarAnalyzer = async ({
         bars,
         buyingPower: updatedBuyingPower,
         buyingPowerMultiplier,
+        costsByDay,
         symbol,
         tradeTimes,
       });
       if (result.rows) {
         rows = [...rows, ...result.rows];
+        costsByDay = result.costsByDay;
         tradeTimes = result.tradeTimes;
         updatedBuyingPower = result.buyingPower;
       }
@@ -127,7 +134,7 @@ const strategemizerBarAnalyzer = async ({
   console.log('results', rows.length);
 
   const outputDirectory = path.resolve(
-    `${MAIN_OUTPUT_DIRECTORY}/bar-analysis/${reportDate}/${reportTime}`,
+    `${MAIN_OUTPUT_DIRECTORY}/bar-analysis/${version}/${reportDate}/${reportTime}`,
   );
   createDirectory(outputDirectory);
   createCsv({

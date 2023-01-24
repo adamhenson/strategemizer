@@ -22,10 +22,14 @@ const cli = meow({
     timeframe: {
       type: 'string',
     },
+    version: {
+      type: 'string',
+      isRequired: true,
+    },
   },
 });
 
-const { analyzerType, end, start, symbolsKey, timeframe } = cli.flags;
+const { analyzerType, end, start, symbolsKey, timeframe, version } = cli.flags;
 
 strategemizerBarAnalyzer({
   analyzerType,
@@ -33,4 +37,5 @@ strategemizerBarAnalyzer({
   start,
   symbolsKey,
   timeframe,
+  version,
 });

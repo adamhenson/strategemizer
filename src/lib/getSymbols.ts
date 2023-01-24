@@ -5,6 +5,7 @@ import {
   ALPACA_SECRET_KEY,
   MAIN_OUTPUT_DIRECTORY,
 } from '../config';
+import validationHighVolume from '../symbols/symbol-validations/highVolume';
 import validationStandard from '../symbols/symbol-validations/standard';
 import AlpacaClient from './AlpacaClient';
 import createDirectory from './createDirectory';
@@ -12,7 +13,7 @@ import createJsonFile from './createJsonFile';
 
 const { LOG_LEVEL = 'error' } = process.env;
 
-const getSymbols = async ({
+export const getSymbols = async ({
   alpacaBaseUrl = ALPACA_BASE_URL,
   alpacaBaseUrlData = ALPACA_BASE_URL_DATA,
   alpacaApiKeyId = ALPACA_API_KEY_ID,
@@ -22,6 +23,7 @@ const getSymbols = async ({
   maxStockPrice,
   minStockPrice,
   name,
+  shouldCreateFile = true,
 }: {
   alpacaBaseUrl?: string;
   alpacaBaseUrlData?: string;
@@ -32,7 +34,8 @@ const getSymbols = async ({
   maxStockPrice?: number;
   minStockPrice?: number;
   name: string;
-}) => {
+  shouldCreateFile?: boolean;
+}): Promise<string[]> => {
   const alpacaClient = new AlpacaClient(
     alpacaBaseUrl,
     alpacaBaseUrlData,
@@ -67,21 +70,35 @@ const getSymbols = async ({
         qualifiedSymbols.push(asset.symbol);
         console.log(asset.symbol, qualifiedSymbols.length);
       }
+    } else if (getFunction === 'high-volume') {
+      const isQualified = await validationHighVolume({
+        alpacaClient,
+        asset,
+        maxStockPrice,
+        minStockPrice,
+      });
+
+      if (isQualified) {
+        qualifiedSymbols.push(asset.symbol);
+        console.log(asset.symbol, qualifiedSymbols.length);
+      }
     }
   }
 
-  const outputDirectory = `${mainOutputDirectory}/symbols`;
-  const outputPath = `${outputDirectory}/${name}.json`;
+  if (shouldCreateFile) {
+    const outputDirectory = `${mainOutputDirectory}/symbols`;
+    const outputPath = `${outputDirectory}/${name}.json`;
+    createDirectory(outputDirectory);
+    createJsonFile({
+      content: {
+        assets: qualifiedSymbols,
+      },
+      outputPath,
+    });
 
-  createDirectory(outputDirectory);
-  createJsonFile({
-    content: {
-      assets: qualifiedSymbols,
-    },
-    outputPath,
-  });
-
-  console.log(`✔️ completed`, outputPath);
+    console.log(`✔️ completed`, outputPath);
+  }
+  return qualifiedSymbols;
 };
 
 export default getSymbols;

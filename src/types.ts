@@ -22,6 +22,7 @@ export interface Bar {
   v: number;
 }
 
+export type CostsByDay = Record<string, number>;
 export type CsvCellValue = string | number;
 export type CsvRow = CsvCellValue[];
 export type CsvRows = CsvCellValue[][];
@@ -55,6 +56,7 @@ export interface TechnicalIndicatorsInputWithVolume
 }
 
 export interface TradeTimes {
+  availableBudget?: number;
   start: string;
   end: string;
 }

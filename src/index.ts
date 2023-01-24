@@ -24,6 +24,7 @@ export {
   StrategemizerGroupRunStartData,
   StrategyResult,
 } from './lib/strategemizer';
+export { default as getSymbols } from './lib/getSymbols';
 export {
   Bar,
   BarWithExtras,
