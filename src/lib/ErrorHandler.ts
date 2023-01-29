@@ -25,6 +25,10 @@ export default class ErrorHandler {
       errors = [`error: ${error.message}`];
     }
 
+    errors.push(
+      `full error: ${JSON.stringify(error, Object.getOwnPropertyNames(error))}`,
+    );
+
     const emailResponse = await emailByTemplate({
       dynamicTemplateData: {
         messages: errors,
