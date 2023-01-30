@@ -19,7 +19,6 @@ import {
 } from '../config';
 import highVolumeSymbolList from '../symbols/public/highVolume';
 import standardSymbolList from '../symbols/public/standard';
-import standardExtendedSymbolList from '../symbols/public/standardExtended';
 import todaySymbolList from '../symbols/public/today';
 import { CostsByDay, CsvRows, TradeTimes } from '../types';
 import AlpacaClient from './AlpacaClient';
@@ -76,8 +75,6 @@ const strategemizerBarAnalyzer = async ({
   let symbols: string[] = [];
   if (symbolsKey === 'standard') {
     symbols = standardSymbolList;
-  } else if (symbolsKey === 'standard-extended') {
-    symbols = standardExtendedSymbolList;
   } else if (symbolsKey === 'high-volume') {
     symbols = highVolumeSymbolList;
   } else if (symbolsKey === 'today') {
