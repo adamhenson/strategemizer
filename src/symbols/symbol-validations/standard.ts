@@ -3,10 +3,10 @@ import AlpacaClient, { GetLatestTradeResult } from '../../lib/AlpacaClient';
 import { getBarsWithRetry } from '../../lib/utils';
 import { Asset } from '../../types';
 
-const MAX_AVG_DAILY_VOLUME = 1000000;
-const MIN_AVG_DAILY_VOLUME = 250000;
-const MIN_STOCK_PRICE = 90;
-const MAX_STOCK_PRICE = 110;
+const MAX_AVG_DAILY_VOLUME = 2000000;
+const MIN_AVG_DAILY_VOLUME = 1000000;
+const MIN_STOCK_PRICE = 20;
+const MAX_STOCK_PRICE = 300;
 
 moment.tz.setDefault('America/New_York');
 

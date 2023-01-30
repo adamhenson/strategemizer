@@ -39,6 +39,11 @@ const endOfDay = ({
     return;
   }
 
+  // the most recent bar should be moving up from the opening bar
+  if (mostRecentBar.c < bars[0].o) {
+    return;
+  }
+
   // the most recent bar should be moving up
   if (mostRecentBar.c < mostRecentBar.o) {
     return;

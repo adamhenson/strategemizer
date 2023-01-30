@@ -5,6 +5,7 @@ import {
   ALPACA_SECRET_KEY,
   MAIN_OUTPUT_DIRECTORY,
 } from '../config';
+import validationDoji from '../symbols/symbol-validations/hasDojiPreviousDay';
 import validationHighVolume from '../symbols/symbol-validations/highVolume';
 import validationStandard from '../symbols/symbol-validations/standard';
 import AlpacaClient from './AlpacaClient';
@@ -72,6 +73,18 @@ export const getSymbols = async ({
       }
     } else if (getFunction === 'high-volume') {
       const isQualified = await validationHighVolume({
+        alpacaClient,
+        asset,
+        maxStockPrice,
+        minStockPrice,
+      });
+
+      if (isQualified) {
+        qualifiedSymbols.push(asset.symbol);
+        console.log(asset.symbol, qualifiedSymbols.length);
+      }
+    } else if (getFunction === 'doji') {
+      const isQualified = await validationDoji({
         alpacaClient,
         asset,
         maxStockPrice,

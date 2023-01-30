@@ -19,6 +19,7 @@ import {
 } from '../config';
 import highVolumeSymbolList from '../symbols/public/highVolume';
 import standardSymbolList from '../symbols/public/standard';
+import todaySymbolList from '../symbols/public/today';
 import { CostsByDay, CsvRows, TradeTimes } from '../types';
 import AlpacaClient from './AlpacaClient';
 import createCsv from './createCsv';
@@ -76,6 +77,8 @@ const strategemizerBarAnalyzer = async ({
     symbols = standardSymbolList;
   } else if (symbolsKey === 'high-volume') {
     symbols = highVolumeSymbolList;
+  } else if (symbolsKey === 'today') {
+    symbols = todaySymbolList;
   }
 
   let costsByDay: CostsByDay = {};
