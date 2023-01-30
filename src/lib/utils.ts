@@ -221,31 +221,31 @@ export const getIndicators = ({
   const barsExtras = getBarsWithExtras(bars);
 
   const rsi = getRsi({
-    bars: barsExtras,
+    bars,
     period: 14,
   });
   const ema8 = getEma({
-    bars: barsExtras,
+    bars,
     period: 8,
   });
   const ema9 = getEma({
-    bars: barsExtras,
+    bars,
     period: 9,
   });
   const ema20 = getEma({
-    bars: barsExtras,
+    bars,
     period: 20,
   });
   const ema50 = getEma({
-    bars: barsExtras,
+    bars,
     period: 50,
   });
   const ema100 = getEma({
-    bars: barsExtras,
+    bars,
     period: 100,
   });
   const stochastic = getStochastic({
-    bars: barsExtras,
+    bars,
     period: stochasticPeriod,
     signalPeriod: stochasticSignalPeriod,
   });
@@ -259,8 +259,8 @@ export const getIndicators = ({
     ema100,
     rsi,
     stochastic,
-    rvol: mostRecentBar.rvol,
-    vwap: mostRecentBar.vwap,
+    rvol: mostRecentBar?.rvol,
+    vwap: mostRecentBar?.vwap,
   };
 };
 
