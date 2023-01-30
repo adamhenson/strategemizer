@@ -6,7 +6,7 @@ import { Bar, CostsByDay, CsvRows, CsvHeaderRow, TradeTimes } from '../types';
 
 moment.tz.setDefault('America/New_York');
 
-const PERCENT_OF_BUYING_POWER = 95;
+const PERCENT_OF_BUYING_POWER = 10;
 
 export const reportHeader: CsvHeaderRow = ['symbol', 'date', 'profit', 'link'];
 

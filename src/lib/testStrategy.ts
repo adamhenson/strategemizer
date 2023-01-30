@@ -70,18 +70,21 @@ const handleResolvedResult = async ({
   result: any;
   tradeAccountBudget: number;
 }) => {
-  const tradeData = await simulateTrade({
-    accountBudget: tradeAccountBudget,
-    accountBudgetMultiplier,
-    accountBudgetPercentPerTrade,
-    alpacaClient,
-    isFractional,
-    isShort: result.isShort,
-    maxLossPercent,
-    sellOnDownwardMovement: false,
-    strategyResult: result,
-    symbol: result.symbol,
-  });
+  const tradeData =
+    typeof result.tradeData !== 'undefined'
+      ? result.tradeData
+      : await simulateTrade({
+          accountBudget: tradeAccountBudget,
+          accountBudgetMultiplier,
+          accountBudgetPercentPerTrade,
+          alpacaClient,
+          isFractional,
+          isShort: result.isShort,
+          maxLossPercent,
+          sellOnDownwardMovement: false,
+          strategyResult: result,
+          symbol: result.symbol,
+        });
 
   if (!tradeData) {
     return;
@@ -326,18 +329,21 @@ const handleResults = async () => {
 
   // this initial loop will give us entry and exit times
   for (const result of strategyResults) {
-    const tradeData = await simulateTrade({
-      accountBudget,
-      accountBudgetMultiplier,
-      accountBudgetPercentPerTrade,
-      alpacaClient,
-      isFractional,
-      isShort: result.isShort,
-      maxLossPercent,
-      sellOnDownwardMovement: false,
-      strategyResult: result,
-      symbol: result.symbol,
-    });
+    const tradeData =
+      typeof result.tradeData !== 'undefined'
+        ? result.tradeData
+        : await simulateTrade({
+            accountBudget,
+            accountBudgetMultiplier,
+            accountBudgetPercentPerTrade,
+            alpacaClient,
+            isFractional,
+            isShort: result.isShort,
+            maxLossPercent,
+            sellOnDownwardMovement: false,
+            strategyResult: result,
+            symbol: result.symbol,
+          });
 
     if (!tradeData) {
       continue;
