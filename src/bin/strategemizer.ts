@@ -35,6 +35,9 @@ const cli = meow({
     shouldReturnAssetPaths: {
       type: 'boolean',
     },
+    shouldRunYearOnSuccess: {
+      type: 'boolean',
+    },
     shouldDelayForLogs: {
       type: 'boolean',
     },
@@ -76,6 +79,7 @@ const {
   maxLoops,
   maxLossPercent,
   shouldReturnAssetPaths,
+  shouldRunYearOnSuccess,
   shouldDelayForLogs,
   skipToVariation,
   start,
@@ -98,8 +102,9 @@ strategemizer({
   isRandomlySorted,
   maxLoops,
   maxLossPercent,
-  shouldReturnAssetPaths,
   shouldDelayForLogs,
+  shouldReturnAssetPaths,
+  shouldRunYearOnSuccess,
   skipToVariation,
   start,
   strategy,

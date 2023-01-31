@@ -107,6 +107,7 @@ export interface StrategemizerOptions {
   maxLoops?: number;
   maxLossPercent?: number;
   shouldReturnAssetPaths?: boolean;
+  shouldRunYearOnSuccess?: boolean;
   shouldDelayForLogs?: boolean;
   skipToVariation?: string;
   start: string;
@@ -139,6 +140,7 @@ const strategemizer = async ({
   maxLossPercent,
   shouldDelayForLogs,
   shouldReturnAssetPaths,
+  shouldRunYearOnSuccess = true,
   skipToVariation,
   start,
   strategy,
@@ -386,7 +388,7 @@ const strategemizer = async ({
     const runProfit = await runVariation(strategyConfigVariation, start);
 
     // if the run was successful... try a year
-    if (runProfit > 0) {
+    if (runProfit > 0 && shouldRunYearOnSuccess) {
       await runVariation(
         {
           ...strategyConfigVariation,
