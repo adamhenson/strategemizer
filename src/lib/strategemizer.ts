@@ -174,6 +174,7 @@ const strategemizer = async ({
       `◉ skipping to variation after ${skipToVariation}, with report date ${reportDate} and report time ${reportTime}`,
     );
   }
+  console.log('◉ shouldRunYearOnSuccess', shouldRunYearOnSuccess);
 
   const outputDirectoryBase = `${mainOutputDirectory}/${strategyKey}/v_${strategyVersion}/config_${strategyConfigKey}/${reportDate}/${reportTime}`;
 
